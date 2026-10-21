@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:lslacavedim",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:lslacave",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:themarketdim",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:themarketzone",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

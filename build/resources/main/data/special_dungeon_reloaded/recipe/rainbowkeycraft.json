@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "special_dungeon_reloaded:rbl_1_bucket"
+    },
+    {
+      "item": "special_dungeon_reloaded:greenkey"
+    }
+  ],
+  "result": {
+    "id": "special_dungeon_reloaded:rainbowkey",
+    "count": 1
+  }
+}

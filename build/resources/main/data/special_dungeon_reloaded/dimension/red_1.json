@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:red_1",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:red",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

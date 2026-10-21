@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "id": "minecraft:quartz_pillar"
+    },
+    "title": {
+      "translate": "advancements.adbuilding.title"
+    },
+    "description": {
+      "translate": "advancements.adbuilding.descr"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "adbuilding_0": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "parent": "special_dungeon_reloaded:acallred"
+}

@@ -1,0 +1,7 @@
+.mcreator*
+run
+mcreator.gradle
+special_dungeon_reloaded.mcreator
+\src\test*
+elements*
+models*

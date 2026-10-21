@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "special_dungeon_reloaded:block/rainbow_2"
+    },
+    "facing=east": {
+      "model": "special_dungeon_reloaded:block/rainbow_2",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "special_dungeon_reloaded:block/rainbow_2",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "special_dungeon_reloaded:block/rainbow_2",
+      "y": 270
+    }
+  }
+}

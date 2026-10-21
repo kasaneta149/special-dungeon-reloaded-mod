@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:orangedim",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:orange",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

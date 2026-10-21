@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "abc",
+    "bdb",
+    "ebf"
+  ],
+  "key": {
+    "a": {
+      "item": "special_dungeon_reloaded:redkey"
+    },
+    "b": {
+      "item": "special_dungeon_reloaded:superprocessor"
+    },
+    "c": {
+      "item": "special_dungeon_reloaded:bluekey"
+    },
+    "d": {
+      "item": "special_dungeon_reloaded:treekey"
+    },
+    "e": {
+      "item": "special_dungeon_reloaded:greenkey"
+    },
+    "f": {
+      "item": "special_dungeon_reloaded:yellowkey"
+    }
+  },
+  "result": {
+    "id": "special_dungeon_reloaded:whitekey",
+    "count": 1
+  }
+}

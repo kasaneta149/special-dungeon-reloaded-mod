@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "aaa",
+    "bcb",
+    "ded"
+  ],
+  "key": {
+    "a": {
+      "item": "minecraft:diamond_block"
+    },
+    "b": {
+      "item": "minecraft:nether_star"
+    },
+    "c": {
+      "item": "minecraft:netherite_block"
+    },
+    "d": {
+      "tag": "minecraft:stone_bricks"
+    },
+    "e": {
+      "tag": "special_dungeon_reloaded:electronic_devices"
+    }
+  },
+  "result": {
+    "id": "special_dungeon_reloaded:dimentionnalslab",
+    "count": 1
+  }
+}

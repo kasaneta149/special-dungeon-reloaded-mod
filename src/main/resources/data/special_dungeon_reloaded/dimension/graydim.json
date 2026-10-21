@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:graydim",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:grayzone",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

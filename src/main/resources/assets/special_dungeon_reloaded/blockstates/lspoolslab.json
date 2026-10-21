@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "special_dungeon_reloaded:block/lspoolslab"
+    },
+    "type=top": {
+      "model": "special_dungeon_reloaded:block/lspoolslab_top"
+    },
+    "type=double": {
+      "model": "special_dungeon_reloaded:block/lspoolslab_full"
+    }
+  }
+}

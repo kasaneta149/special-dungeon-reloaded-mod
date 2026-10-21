@@ -1,0 +1,29 @@
+{
+  "display": {
+    "icon": {
+      "id": "special_dungeon_reloaded:orangefloor"
+    },
+    "title": {
+      "translate": "advancements.ac_8.title"
+    },
+    "description": {
+      "translate": "advancements.ac_8.descr"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "ac_8_0": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "special_dungeon_reloaded:orangedim"
+      }
+    }
+  },
+  "rewards": {
+    "experience": 5
+  },
+  "parent": "special_dungeon_reloaded:acallred"
+}

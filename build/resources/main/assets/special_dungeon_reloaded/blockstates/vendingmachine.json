@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "special_dungeon_reloaded:block/vendingmachine"
+    },
+    "facing=east": {
+      "model": "special_dungeon_reloaded:block/vendingmachine",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "special_dungeon_reloaded:block/vendingmachine",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "special_dungeon_reloaded:block/vendingmachine",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:lsmaisoninonde",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:lsmaisoninondezone",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "abc",
+    "def",
+    "ghi"
+  ],
+  "key": {
+    "a": {
+      "item": "special_dungeon_reloaded:redkey"
+    },
+    "b": {
+      "item": "special_dungeon_reloaded:bluekey"
+    },
+    "c": {
+      "item": "special_dungeon_reloaded:yellowkey"
+    },
+    "d": {
+      "item": "special_dungeon_reloaded:greenkey"
+    },
+    "e": {
+      "item": "special_dungeon_reloaded:orangekey"
+    },
+    "f": {
+      "item": "special_dungeon_reloaded:brownkey"
+    },
+    "g": {
+      "item": "special_dungeon_reloaded:cyankey"
+    },
+    "h": {
+      "item": "special_dungeon_reloaded:treekey"
+    },
+    "i": {
+      "item": "special_dungeon_reloaded:magicalstone"
+    }
+  },
+  "result": {
+    "id": "special_dungeon_reloaded:graykey",
+    "count": 1
+  }
+}

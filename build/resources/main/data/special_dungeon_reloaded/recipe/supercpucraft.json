@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "aba",
+    "ccc",
+    "bbb"
+  ],
+  "key": {
+    "a": {
+      "item": "special_dungeon_reloaded:itmgear"
+    },
+    "b": {
+      "item": "special_dungeon_reloaded:itmcircuit"
+    },
+    "c": {
+      "item": "special_dungeon_reloaded:itmcpu"
+    }
+  },
+  "result": {
+    "id": "special_dungeon_reloaded:superprocessor",
+    "count": 1
+  }
+}

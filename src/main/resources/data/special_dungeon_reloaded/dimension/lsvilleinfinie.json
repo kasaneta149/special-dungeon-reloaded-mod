@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:lsvilleinfinie",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:l_svilleinfiniezone",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

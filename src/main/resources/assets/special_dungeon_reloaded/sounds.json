@@ -1,0 +1,282 @@
+{
+  "blueandyellow_zone": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:blueandyellow_space",
+        "stream": false
+      }
+    ]
+  },
+  "orange_zone": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:orange_space",
+        "stream": false
+      }
+    ]
+  },
+  "cyan_zone": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:cyan_space",
+        "stream": false
+      }
+    ]
+  },
+  "brown_zone": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:brown_space",
+        "stream": false
+      }
+    ]
+  },
+  "red_zone": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:red_space",
+        "stream": false
+      }
+    ]
+  },
+  "open_door": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:opendoor",
+        "stream": false
+      }
+    ]
+  },
+  "wrong_key": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:wrong_key",
+        "stream": false
+      }
+    ]
+  },
+  "solved": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:ite_u",
+        "stream": false
+      }
+    ]
+  },
+  "portalpass": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:portalpass",
+        "stream": false
+      }
+    ]
+  },
+  "waterworld": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:waterworld",
+        "stream": false
+      }
+    ]
+  },
+  "coins_pickup": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:coin_0",
+        "stream": false
+      },
+      {
+        "name": "special_dungeon_reloaded:coin_1",
+        "stream": false
+      },
+      {
+        "name": "special_dungeon_reloaded:coin_2",
+        "stream": false
+      },
+      {
+        "name": "special_dungeon_reloaded:coin_3",
+        "stream": false
+      },
+      {
+        "name": "special_dungeon_reloaded:coin_4",
+        "stream": false
+      }
+    ]
+  },
+  "corrupted_star": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:corrupted_star",
+        "stream": false
+      }
+    ]
+  },
+  "heart_hurt": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:heart_hurt",
+        "stream": false
+      }
+    ]
+  },
+  "heart_death": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:heart_death",
+        "stream": false
+      }
+    ]
+  },
+  "tfdog_hurt": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:tf_hit_d2",
+        "stream": false
+      },
+      {
+        "name": "special_dungeon_reloaded:tf_hit_d1",
+        "stream": false
+      }
+    ]
+  },
+  "tfdog_ambien": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:tf_d2",
+        "stream": false
+      },
+      {
+        "name": "special_dungeon_reloaded:tf_d1",
+        "stream": false
+      }
+    ]
+  },
+  "white_zone": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:corellilafolia",
+        "stream": false
+      }
+    ]
+  },
+  "corruptiontheme": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:corruption",
+        "stream": false
+      }
+    ]
+  },
+  "themarketsong": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:market",
+        "stream": false
+      }
+    ]
+  },
+  "thecampfire": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:campfiretheme",
+        "stream": false
+      }
+    ]
+  },
+  "gamestarted": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:gamestarted",
+        "stream": false
+      }
+    ]
+  },
+  "anomalie_got_you": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:gotyou",
+        "stream": false
+      }
+    ]
+  },
+  "lv9": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:ambience1",
+        "stream": false
+      }
+    ]
+  },
+  "crazymanambient": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:crazyambien",
+        "stream": false
+      },
+      {
+        "name": "special_dungeon_reloaded:crazyambien2",
+        "stream": false
+      },
+      {
+        "name": "special_dungeon_reloaded:crazyambien3",
+        "stream": false
+      }
+    ]
+  },
+  "screamer1s": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:scramer_1s",
+        "stream": false
+      }
+    ]
+  },
+  "screamer": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:screamer1",
+        "stream": false
+      },
+      {
+        "name": "special_dungeon_reloaded:screamer2",
+        "stream": false
+      }
+    ]
+  },
+  "scramer_long": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:screamer_long",
+        "stream": false
+      }
+    ]
+  },
+  "lv12c": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:lv12c",
+        "stream": false
+      }
+    ]
+  },
+  "dreamdimention": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:dreamdimention",
+        "stream": false
+      }
+    ]
+  },
+  "damage_regenerator": {
+    "sounds": [
+      {
+        "name": "special_dungeon_reloaded:regenhurt2",
+        "stream": false
+      },
+      {
+        "name": "special_dungeon_reloaded:regenhurt1",
+        "stream": false
+      }
+    ]
+  }
+}

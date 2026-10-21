@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:waterworld",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:water",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

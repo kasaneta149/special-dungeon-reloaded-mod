@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:lsstationessencedim",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:lsstationessence",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "special_dungeon_reloaded:darkhouse",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 10,
+    "separation": 2,
+    "salt": 1578029912
+  }
+}

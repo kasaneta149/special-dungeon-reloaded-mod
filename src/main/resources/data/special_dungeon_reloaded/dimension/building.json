@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:building",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:thebuilding",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "special_dungeon_reloaded:block/busstop_3"
+    },
+    "facing=east": {
+      "model": "special_dungeon_reloaded:block/busstop_3",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "special_dungeon_reloaded:block/busstop_3",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "special_dungeon_reloaded:block/busstop_3",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "special_dungeon_reloaded:block/busstop_3",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "special_dungeon_reloaded:block/busstop_3",
+      "x": 90
+    }
+  }
+}

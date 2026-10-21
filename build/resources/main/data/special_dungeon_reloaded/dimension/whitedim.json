@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:whitedim",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:whitezone",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

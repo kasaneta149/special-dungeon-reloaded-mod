@@ -1,0 +1,16 @@
+{
+  "replace": false,
+  "values": [
+    "special_dungeon_reloaded:brownstair",
+    "special_dungeon_reloaded:greenstair",
+    "special_dungeon_reloaded:blackstair",
+    "special_dungeon_reloaded:orangestair",
+    "special_dungeon_reloaded:purplestair",
+    "special_dungeon_reloaded:whitestair",
+    "special_dungeon_reloaded:bluestairs",
+    "special_dungeon_reloaded:lspoolstairs",
+    "special_dungeon_reloaded:cyanstair",
+    "special_dungeon_reloaded:yellowstair",
+    "special_dungeon_reloaded:redstairs"
+  ]
+}

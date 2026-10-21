@@ -1,0 +1,29 @@
+{
+  "display": {
+    "icon": {
+      "id": "special_dungeon_reloaded:cyanfloor"
+    },
+    "title": {
+      "translate": "advancements.ac_6.title"
+    },
+    "description": {
+      "translate": "advancements.ac_6.descr"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "ac_6_0": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "special_dungeon_reloaded:cyandim"
+      }
+    }
+  },
+  "rewards": {
+    "experience": 5
+  },
+  "parent": "special_dungeon_reloaded:acallred"
+}

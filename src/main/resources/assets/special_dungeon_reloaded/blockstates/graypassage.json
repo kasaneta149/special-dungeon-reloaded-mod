@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "special_dungeon_reloaded:block/graypassage"
+    },
+    "facing=east": {
+      "model": "special_dungeon_reloaded:block/graypassage",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "special_dungeon_reloaded:block/graypassage",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "special_dungeon_reloaded:block/graypassage",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "special_dungeon_reloaded:block/graypassage",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "special_dungeon_reloaded:block/graypassage",
+      "x": 90
+    }
+  }
+}

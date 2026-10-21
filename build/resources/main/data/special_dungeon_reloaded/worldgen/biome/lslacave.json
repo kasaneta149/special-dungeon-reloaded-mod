@@ -1,0 +1,75 @@
+{
+  "has_precipitation": false,
+  "temperature": 1,
+  "downfall": 0,
+  "effects": {
+    "foliage_color": -16777216,
+    "grass_color": -16777216,
+    "sky_color": -16777216,
+    "fog_color": -16777216,
+    "water_color": 4159204,
+    "water_fog_color": -16777216
+  },
+  "spawners": {
+    "monster": [
+      {
+        "type": "creeper",
+        "weight": 6,
+        "minCount": 1,
+        "maxCount": 3
+      },
+      {
+        "type": "vindicator",
+        "weight": 15,
+        "minCount": 4,
+        "maxCount": 6
+      },
+      {
+        "type": "husk",
+        "weight": 18,
+        "minCount": 4,
+        "maxCount": 5
+      },
+      {
+        "type": "enderman",
+        "weight": 14,
+        "minCount": 1,
+        "maxCount": 4
+      },
+      {
+        "type": "zombie",
+        "weight": 20,
+        "minCount": 2,
+        "maxCount": 4
+      },
+      {
+        "type": "skeleton",
+        "weight": 20,
+        "minCount": 4,
+        "maxCount": 4
+      }
+    ],
+    "creature": [],
+    "ambient": [],
+    "axolotls": [],
+    "underground_water_creature": [],
+    "water_creature": [],
+    "water_ambient": [],
+    "misc": []
+  },
+  "spawn_costs": {},
+  "carvers": {},
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ]
+}

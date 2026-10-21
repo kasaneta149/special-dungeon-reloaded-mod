@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:theblacktransfer",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:blackmoment",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

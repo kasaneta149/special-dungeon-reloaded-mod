@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:lspiscinedim",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:lspiscinezone",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

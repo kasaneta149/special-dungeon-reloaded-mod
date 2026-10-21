@@ -1,0 +1,39 @@
+{
+  "has_precipitation": false,
+  "temperature": 2,
+  "downfall": 0,
+  "effects": {
+    "ambient_sound": "special_dungeon_reloaded:lv12c",
+    "foliage_color": -6711040,
+    "grass_color": -6711040,
+    "sky_color": -6697984,
+    "fog_color": -10053376,
+    "water_color": 4159204,
+    "water_fog_color": -3355648
+  },
+  "spawners": {
+    "monster": [],
+    "creature": [],
+    "ambient": [],
+    "axolotls": [],
+    "underground_water_creature": [],
+    "water_creature": [],
+    "water_ambient": [],
+    "misc": []
+  },
+  "spawn_costs": {},
+  "carvers": {},
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ]
+}

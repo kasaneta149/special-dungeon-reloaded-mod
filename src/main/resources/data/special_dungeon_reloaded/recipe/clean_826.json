@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "special_dungeon_reloaded:busshedule_826dirty"
+    },
+    {
+      "item": "minecraft:water_bucket"
+    }
+  ],
+  "result": {
+    "id": "special_dungeon_reloaded:busshedule_826",
+    "count": 1
+  }
+}

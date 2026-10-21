@@ -1,0 +1,26 @@
+{
+  "display": {
+    "icon": {
+      "id": "minecraft:sand"
+    },
+    "title": {
+      "translate": "advancements.adlv_0.title"
+    },
+    "description": {
+      "translate": "advancements.adlv_0.descr"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "adlv_0_0": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "special_dungeon_reloaded:lsbeachdim"
+      }
+    }
+  },
+  "parent": "special_dungeon_reloaded:acallred"
+}

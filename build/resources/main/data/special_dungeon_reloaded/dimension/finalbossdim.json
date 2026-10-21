@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:finalbossdim",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:blackzone",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

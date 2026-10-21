@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:lscampement",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:ls_campementzone",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

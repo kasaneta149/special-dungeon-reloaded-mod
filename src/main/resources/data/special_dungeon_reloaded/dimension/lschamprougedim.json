@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:lschamprougedim",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:lsleschamprouges",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

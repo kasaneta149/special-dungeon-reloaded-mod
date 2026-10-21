@@ -1,0 +1,124 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="special_dungeon_reloaded"
+version="1.0.0"
+displayName="special dungeon reloaded"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/special-dungeon-reloaded/"
+logoFile="logo.png"
+credits="All pics are from various ppl on pinterest, and the mods used belong to ther respective owners"
+authors="kasaneta149"
+description="Add awesome and diversified dungeon for you to explore !"
+
+# Start of user code block mod configuration
+# End of user code block mod configuration
+
+
+# Start of user code block custom mixins
+# End of user code block custom mixins
+
+[[dependencies.special_dungeon_reloaded]]
+    modId="neoforge"
+    type="required"
+    versionRange="[21.1.232,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.special_dungeon_reloaded]]
+    modId="minecraft"
+    type="required"
+    versionRange="[1.21.1]"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.special_dungeon_reloaded]]
+    modId="mcwbridges"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.special_dungeon_reloaded]]
+    modId="mcwstairs"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.special_dungeon_reloaded]]
+    modId="manyideas_doors"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.special_dungeon_reloaded]]
+    modId="g3project_doors_reborn"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.special_dungeon_reloaded]]
+    modId="escalated"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.special_dungeon_reloaded]]
+    modId="rechiseled"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.special_dungeon_reloaded]]
+    modId="mcwdoors"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.special_dungeon_reloaded]]
+    modId="chisel"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.special_dungeon_reloaded]]
+    modId="mcwfurnitures"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.special_dungeon_reloaded]]
+    modId="attributefix"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.special_dungeon_reloaded]]
+    modId="factory_blocks"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.special_dungeon_reloaded]]
+    modId="malisisdoorsreborn"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.special_dungeon_reloaded]]
+    modId="create"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.special_dungeon_reloaded]]
+    modId="decocraft"
+    type="required"
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+
+
+
+# Start of user code block dependencies configuration
+# End of user code block dependencies configuration

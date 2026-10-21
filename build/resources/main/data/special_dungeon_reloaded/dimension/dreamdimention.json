@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:dreamdimention",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:dreamzone",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

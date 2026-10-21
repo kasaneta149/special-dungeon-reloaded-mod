@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:lsetatdefoliedim",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:lsetatdefolie",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

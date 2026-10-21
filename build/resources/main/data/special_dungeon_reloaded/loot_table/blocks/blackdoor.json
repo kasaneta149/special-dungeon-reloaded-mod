@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "special_dungeon_reloaded:blocks/blackdoor",
+  "pools": [
+    {
+      "rolls": 1.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "special_dungeon_reloaded:blackdoor"
+        }
+      ]
+    }
+  ]
+}

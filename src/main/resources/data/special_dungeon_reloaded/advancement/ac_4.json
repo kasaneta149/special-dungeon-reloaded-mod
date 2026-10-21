@@ -1,0 +1,29 @@
+{
+  "display": {
+    "icon": {
+      "id": "special_dungeon_reloaded:greenfloor"
+    },
+    "title": {
+      "translate": "advancements.ac_4.title"
+    },
+    "description": {
+      "translate": "advancements.ac_4.descr"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "ac_4_0": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "special_dungeon_reloaded:greendim"
+      }
+    }
+  },
+  "rewards": {
+    "experience": 5
+  },
+  "parent": "special_dungeon_reloaded:acallred"
+}

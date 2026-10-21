@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:lschampinfini",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:lschampinfinizone",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

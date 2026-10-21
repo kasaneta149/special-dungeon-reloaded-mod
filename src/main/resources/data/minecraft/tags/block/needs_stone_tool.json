@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "special_dungeon_reloaded:lasergametargetmaker",
+    "special_dungeon_reloaded:lasergamecontroller"
+  ]
+}

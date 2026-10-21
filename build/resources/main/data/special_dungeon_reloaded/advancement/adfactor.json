@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "id": "special_dungeon_reloaded:superprocessor"
+    },
+    "title": {
+      "translate": "advancements.adfactor.title"
+    },
+    "description": {
+      "translate": "advancements.adfactor.descr"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "adfactor_0": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "parent": "special_dungeon_reloaded:acallred"
+}

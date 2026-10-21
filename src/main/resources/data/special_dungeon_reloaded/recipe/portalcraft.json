@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "aba",
+    "bcb",
+    "aba"
+  ],
+  "key": {
+    "a": {
+      "item": "special_dungeon_reloaded:dimentionalbricks"
+    },
+    "b": {
+      "item": "special_dungeon_reloaded:dimentionnalslab"
+    },
+    "c": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "result": {
+    "id": "special_dungeon_reloaded:portaltodungeonscraftable",
+    "count": 1
+  }
+}

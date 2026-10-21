@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:browndim",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:brownzone",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "display": {
+    "icon": {
+      "id": "special_dungeon_reloaded:achicloud"
+    },
+    "title": {
+      "translate": "advancements.whereiam.title"
+    },
+    "description": {
+      "translate": "advancements.whereiam.descr"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "whereiam_0": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "special_dungeon_reloaded:dreamdimention"
+      }
+    }
+  },
+  "parent": "special_dungeon_reloaded:acallred"
+}

@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "special_dungeon_reloaded:blackdespawn",
+    "special_dungeon_reloaded:blackkill",
+    "special_dungeon_reloaded:blackwalkthought",
+    "special_dungeon_reloaded:black_down",
+    "special_dungeon_reloaded:black",
+    "special_dungeon_reloaded:black_up"
+  ]
+}

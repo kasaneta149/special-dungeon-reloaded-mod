@@ -1,0 +1,26 @@
+{
+  "display": {
+    "background": "special_dungeon_reloaded:textures/screens/purple_wall_msg_bg.png",
+    "icon": {
+      "id": "special_dungeon_reloaded:redfloor"
+    },
+    "title": {
+      "translate": "advancements.acallred.title"
+    },
+    "description": {
+      "translate": "advancements.acallred.descr"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "acallred_0": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "rewards": {
+    "experience": 5
+  }
+}

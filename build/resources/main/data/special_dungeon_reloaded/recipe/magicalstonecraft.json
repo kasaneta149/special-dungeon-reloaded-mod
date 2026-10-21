@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "abc",
+    "d e",
+    "fgh"
+  ],
+  "key": {
+    "a": {
+      "item": "special_dungeon_reloaded:redstone"
+    },
+    "b": {
+      "item": "special_dungeon_reloaded:pinkstone"
+    },
+    "c": {
+      "item": "special_dungeon_reloaded:whitestone"
+    },
+    "d": {
+      "item": "special_dungeon_reloaded:bluestone"
+    },
+    "e": {
+      "item": "special_dungeon_reloaded:greenstone"
+    },
+    "f": {
+      "item": "special_dungeon_reloaded:yellowstone"
+    },
+    "g": {
+      "item": "special_dungeon_reloaded:purplestone"
+    },
+    "h": {
+      "item": "minecraft:diamond_block"
+    }
+  },
+  "result": {
+    "id": "special_dungeon_reloaded:magicalstone",
+    "count": 1
+  }
+}

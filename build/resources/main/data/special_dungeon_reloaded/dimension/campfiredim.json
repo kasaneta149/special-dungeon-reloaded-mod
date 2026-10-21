@@ -1,0 +1,12 @@
+{
+  "type": "special_dungeon_reloaded:campfiredim",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "special_dungeon_reloaded:thecampfire",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}
