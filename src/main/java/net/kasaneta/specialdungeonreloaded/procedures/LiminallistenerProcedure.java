@@ -1,9 +1,11 @@
 package net.kasaneta.specialdungeonreloaded.procedures;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.bus.api.Event;
 
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
@@ -16,6 +18,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.Mth;
@@ -34,808 +37,323 @@ import net.minecraft.core.BlockPos;
 
 import net.kasaneta.specialdungeonreloaded.init.SpecialDungeonReloadedModMobEffects;
 
-import javax.annotation.Nullable;
+import java.util.Map;
+import java.util.HashMap;
 
 @EventBusSubscriber
 public class LiminallistenerProcedure {
+	private static final String NAMESPACE = "special_dungeon_reloaded";
+	private static final int CELL_SIZE = 48;
+	private static final int PRELOAD_RADIUS = 3;
+	private static final int MARKER_Y = 20;
+	private static final int STRUCTURE_Y = 150;
+
+	private static final ResourceLocation BEACH = id("lsbeachdim");
+	private static final ResourceLocation CAMPEMENT = id("lscampement");
+	private static final ResourceLocation VILLE_INFINIE = id("lsvilleinfinie");
+	private static final ResourceLocation CAVE = id("lslacavedim");
+	private static final ResourceLocation PISCINE = id("lspiscinedim");
+	private static final ResourceLocation MAISON_INONDEE = id("lsmaisoninonde");
+	private static final ResourceLocation CENTRE_COMMERCIAL = id("lscentrecommercialdim");
+	private static final ResourceLocation STATION_ESSENCE = id("lsstationessencedim");
+	private static final ResourceLocation CHAMP_ROUGE = id("lschamprougedim");
+	private static final ResourceLocation CHAMP_INFINI = id("lschampinfini");
+	private static final ResourceLocation BUREAU = id("lsbureaudim");
+	private static final ResourceLocation BUREAU_ABANDONNE = id("lsbureauabandonedim");
+	private static final ResourceLocation ETAT_DE_FOLIE = id("lsetatdefoliedim");
+
+	private static final ResourceKey<Level> CAMPEMENT_KEY = ResourceKey.create(Registries.DIMENSION, CAMPEMENT);
+	private static final ResourceKey<Level> CAVE_KEY = ResourceKey.create(Registries.DIMENSION, CAVE);
+	private static final ResourceKey<DamageType> VOID_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, id("voiddamage"));
+
+	private static final ResourceLocation SCREAM_LONG = id("scramer_long");
+	private static final ResourceLocation SCREAM_SHORT = id("screamer1s");
+
+	private interface Picker {
+		String pick(int gridX, int gridZ, RandomSource random);
+	}
+
+	private static final Map<ResourceLocation, Picker> PICKERS = new HashMap<>();
+	private static final Map<ResourceKey<Level>, LongOpenHashSet> DONE = new HashMap<>();
+
+	static {
+		PICKERS.put(BEACH, LiminallistenerProcedure::beach);
+		PICKERS.put(CAMPEMENT, LiminallistenerProcedure::campement);
+		PICKERS.put(VILLE_INFINIE, LiminallistenerProcedure::villeInfinie);
+		PICKERS.put(CAVE, LiminallistenerProcedure::cave);
+		PICKERS.put(PISCINE, LiminallistenerProcedure::piscine);
+		PICKERS.put(MAISON_INONDEE, LiminallistenerProcedure::maisonInondee);
+		PICKERS.put(CENTRE_COMMERCIAL, LiminallistenerProcedure::centreCommercial);
+		PICKERS.put(STATION_ESSENCE, LiminallistenerProcedure::stationEssence);
+		PICKERS.put(CHAMP_ROUGE, LiminallistenerProcedure::champRouge);
+		PICKERS.put(CHAMP_INFINI, LiminallistenerProcedure::champInfini);
+		PICKERS.put(BUREAU, LiminallistenerProcedure::bureau);
+		PICKERS.put(BUREAU_ABANDONNE, LiminallistenerProcedure::bureauAbandonne);
+		PICKERS.put(ETAT_DE_FOLIE, LiminallistenerProcedure::etatDeFolie);
+	}
+
 	@SubscribeEvent
 	public static void onPlayerTick(PlayerTickEvent.Post event) {
-		execute(event, event.getEntity().level(), event.getEntity().getX(), event.getEntity().getY(), event.getEntity().getZ(), event.getEntity());
+		Entity entity = event.getEntity();
+		execute(entity.level(), entity.getX(), entity.getY(), entity.getZ(), entity);
+	}
+
+	@SubscribeEvent
+	public static void onServerStopped(ServerStoppedEvent event) {
+		DONE.clear();
 	}
 
 	public static void execute(LevelAccessor world, double x, double y, double z, Entity entity) {
-		execute(null, world, x, y, z, entity);
-	}
-
-	private static void execute(@Nullable Event event, LevelAccessor world, double x, double y, double z, Entity entity) {
-		if (entity == null)
+		if (entity == null || !(world instanceof ServerLevel level))
 			return;
-		double gridX = 0;
-		double gridZ = 0;
-		double randomlol = 0;
-		double structureid = 0;
-		double PlayerX = 0;
-		double PlayerZ = 0;
-		double caveid = 0;
-		double poolid = 0;
-		if (ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lsbeachdim")) == (entity.level().dimension())) {
+		ResourceLocation dimension = level.dimension().location();
+		if (dimension.equals(BEACH)) {
 			if (entity.getY() >= 200) {
-				if (entity instanceof ServerPlayer _player && !_player.level().isClientSide()) {
-					ResourceKey<Level> destinationType = Level.OVERWORLD;
-					if (_player.level().dimension() == destinationType)
-						return;
-					ServerLevel nextLevel = _player.server.getLevel(destinationType);
-					if (nextLevel != null) {
-						_player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
-						_player.teleportTo(nextLevel, _player.getX(), _player.getY(), _player.getZ(), _player.getYRot(), _player.getXRot());
-						_player.connection.send(new ClientboundPlayerAbilitiesPacket(_player.getAbilities()));
-						for (MobEffectInstance _effectinstance : _player.getActiveEffects())
-							_player.connection.send(new ClientboundUpdateMobEffectPacket(_player.getId(), _effectinstance, false));
-						_player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
-					}
-				}
+				teleport(entity, Level.OVERWORLD);
 				return;
 			}
 			if (entity.getX() >= 500) {
-				if (entity instanceof ServerPlayer _player && !_player.level().isClientSide()) {
-					ResourceKey<Level> destinationType = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lscampement"));
-					if (_player.level().dimension() == destinationType)
-						return;
-					ServerLevel nextLevel = _player.server.getLevel(destinationType);
-					if (nextLevel != null) {
-						_player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
-						_player.teleportTo(nextLevel, _player.getX(), _player.getY(), _player.getZ(), _player.getYRot(), _player.getXRot());
-						_player.connection.send(new ClientboundPlayerAbilitiesPacket(_player.getAbilities()));
-						for (MobEffectInstance _effectinstance : _player.getActiveEffects())
-							_player.connection.send(new ClientboundUpdateMobEffectPacket(_player.getId(), _effectinstance, false));
-						_player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
-					}
-				}
+				teleport(entity, CAMPEMENT_KEY);
 				return;
 			}
-			gridX = Math.floor(entity.getX() / 48) * 48;
-			gridZ = Math.floor(entity.getZ() / 48) * 48;
-			randomlol = Math.random();
-			if (!((world.getBlockState(BlockPos.containing(gridX, 20, gridZ))).getBlock() == Blocks.BEDROCK)) {
-				world.setBlock(BlockPos.containing(gridX, 20, gridZ), Blocks.BEDROCK.defaultBlockState(), 3);
-				if (gridX > 0) {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_beach_sand"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				} else if (gridX < 0) {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_beach_ocean"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				} else if (gridX == 0) {
-					structureid = Mth.nextInt(RandomSource.create(), 0, 5);
-					if (structureid == 0) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_beach_main"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (structureid == 1) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_beach_main_sec2"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (structureid == 2) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_beach_main_sec3"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (structureid == 3) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_beach_main_sec4"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (structureid == 4) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_beach_main_sec5"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (structureid == 5) {
-						if (Math.random() >= 0.93) {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_beach_main_sec6_withdog"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						} else {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_beach_main_sec6"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						}
-					}
-				}
+		} else if (dimension.equals(VILLE_INFINIE) && Math.abs(entity.getX()) >= 350) {
+			teleport(entity, CAVE_KEY);
+			return;
+		} else if (dimension.equals(ETAT_DE_FOLIE) && entity instanceof LivingEntity living) {
+			applyMadness(level, x, y, z, living);
+		}
+		Picker picker = PICKERS.get(dimension);
+		if (picker != null)
+			generateAround(level, dimension, picker, entity);
+	}
+
+	private static ResourceLocation id(String path) {
+		return ResourceLocation.fromNamespaceAndPath(NAMESPACE, path);
+	}
+
+	private static void teleport(Entity entity, ResourceKey<Level> destination) {
+		if (!(entity instanceof ServerPlayer player))
+			return;
+		ServerLevel nextLevel = player.server.getLevel(destination);
+		if (nextLevel == null)
+			return;
+		player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
+		player.teleportTo(nextLevel, player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
+		player.connection.send(new ClientboundPlayerAbilitiesPacket(player.getAbilities()));
+		for (MobEffectInstance effect : player.getActiveEffects())
+			player.connection.send(new ClientboundUpdateMobEffectPacket(player.getId(), effect, false));
+		player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
+	}
+
+	private static void playSound(ServerLevel level, double x, double y, double z, ResourceLocation sound) {
+		level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.get(sound), SoundSource.NEUTRAL, 1, 1);
+	}
+
+	private static void applyMadness(ServerLevel level, double x, double y, double z, LivingEntity entity) {
+		RandomSource random = level.getRandom();
+		if (random.nextInt(251) != 5)
+			return;
+		double roll = random.nextDouble();
+		if (roll >= 0.9) {
+			entity.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 200, 1, false, false));
+			entity.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 200, 1, false, false));
+			entity.hurt(new DamageSource(level.holderOrThrow(VOID_DAMAGE)), 6 + random.nextInt(12));
+			if (random.nextBoolean()) {
+				entity.addEffect(new MobEffectInstance(SpecialDungeonReloadedModMobEffects.NOTCARREFUL, 45, 1, false, false));
+				playSound(level, x, y, z, SCREAM_LONG);
+			} else {
+				entity.addEffect(new MobEffectInstance(SpecialDungeonReloadedModMobEffects.NOTCARREFUL, 20, 1, false, false));
+				playSound(level, x, y, z, SCREAM_SHORT);
 			}
-		} else if (ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lscampement")) == (entity.level().dimension())) {
-			gridX = Math.floor(entity.getX() / 48) * 48;
-			gridZ = Math.floor(entity.getZ() / 48) * 48;
-			if (!((world.getBlockState(BlockPos.containing(gridX, 20, gridZ))).getBlock() == Blocks.BEDROCK)) {
-				world.setBlock(BlockPos.containing(gridX, 20, gridZ), Blocks.BEDROCK.defaultBlockState(), 3);
-				if (gridX > 0) {
-					if (Math.random() >= 0.83) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_campement_forest2"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_campement_forest1"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					}
-				} else if (gridX < 0) {
-					if (Math.random() >= 0.83) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_campement_forest2"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_campement_forest1"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					}
-				} else if (gridX == 0) {
-					if (gridZ == 0) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_campement_main"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else {
-						if (Math.random() >= 0.83) {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_campement_forest2"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						} else {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_campement_forest1"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						}
-					}
-				}
-			}
-		} else if (ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lsvilleinfinie")) == (entity.level().dimension())) {
-			gridX = Math.floor(entity.getX() / 48) * 48;
-			gridZ = Math.floor(entity.getZ() / 48) * 48;
-			if (entity.getX() >= 350) {
-				if (entity instanceof ServerPlayer _player && !_player.level().isClientSide()) {
-					ResourceKey<Level> destinationType = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lslacavedim"));
-					if (_player.level().dimension() == destinationType)
+		} else if (roll >= 0.7) {
+			entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, false));
+			entity.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 200, 1, false, false));
+			entity.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 200, 1, false, false));
+		} else if (roll >= 0.58) {
+			entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, false));
+			entity.hurt(new DamageSource(level.holderOrThrow(VOID_DAMAGE)), 1 + random.nextInt(5));
+			entity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 200, 1, false, false));
+		} else {
+			entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, false));
+			entity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 200, 1, false, false));
+		}
+	}
+
+	private static void generateAround(ServerLevel level, ResourceLocation dimension, Picker picker, Entity entity) {
+		LongOpenHashSet done = DONE.computeIfAbsent(level.dimension(), key -> new LongOpenHashSet());
+		int centerX = Math.floorDiv(Mth.floor(entity.getX()), CELL_SIZE);
+		int centerZ = Math.floorDiv(Mth.floor(entity.getZ()), CELL_SIZE);
+		for (int ring = 0; ring <= PRELOAD_RADIUS; ring++) {
+			for (int dx = -ring; dx <= ring; dx++) {
+				for (int dz = -ring; dz <= ring; dz++) {
+					if (Math.max(Math.abs(dx), Math.abs(dz)) != ring)
+						continue;
+					if (processCell(level, dimension, picker, done, centerX + dx, centerZ + dz, ring == 0))
 						return;
-					ServerLevel nextLevel = _player.server.getLevel(destinationType);
-					if (nextLevel != null) {
-						_player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
-						_player.teleportTo(nextLevel, _player.getX(), _player.getY(), _player.getZ(), _player.getYRot(), _player.getXRot());
-						_player.connection.send(new ClientboundPlayerAbilitiesPacket(_player.getAbilities()));
-						for (MobEffectInstance _effectinstance : _player.getActiveEffects())
-							_player.connection.send(new ClientboundUpdateMobEffectPacket(_player.getId(), _effectinstance, false));
-						_player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
-					}
-				}
-				return;
-			}
-			if (entity.getX() <= -350) {
-				if (entity instanceof ServerPlayer _player && !_player.level().isClientSide()) {
-					ResourceKey<Level> destinationType = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lslacavedim"));
-					if (_player.level().dimension() == destinationType)
-						return;
-					ServerLevel nextLevel = _player.server.getLevel(destinationType);
-					if (nextLevel != null) {
-						_player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
-						_player.teleportTo(nextLevel, _player.getX(), _player.getY(), _player.getZ(), _player.getYRot(), _player.getXRot());
-						_player.connection.send(new ClientboundPlayerAbilitiesPacket(_player.getAbilities()));
-						for (MobEffectInstance _effectinstance : _player.getActiveEffects())
-							_player.connection.send(new ClientboundUpdateMobEffectPacket(_player.getId(), _effectinstance, false));
-						_player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
-					}
-				}
-				return;
-			}
-			if (!((world.getBlockState(BlockPos.containing(gridX, 20, gridZ))).getBlock() == Blocks.BEDROCK)) {
-				world.setBlock(BlockPos.containing(gridX, 20, gridZ), Blocks.BEDROCK.defaultBlockState(), 3);
-				if (Math.random() >= 0.94) {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_ville_infinie_1_bus"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				} else {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_ville_infinie_1"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				}
-			}
-		} else if (ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lslacavedim")) == (entity.level().dimension())) {
-			gridX = Math.floor(entity.getX() / 48) * 48;
-			gridZ = Math.floor(entity.getZ() / 48) * 48;
-			if (!((world.getBlockState(BlockPos.containing(gridX, 20, gridZ))).getBlock() == Blocks.BEDROCK)) {
-				world.setBlock(BlockPos.containing(gridX, 20, gridZ), Blocks.BEDROCK.defaultBlockState(), 3);
-				if (Math.random() >= 0.7) {
-					caveid = Math.random();
-					if (caveid >= 0.9) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_la_cave_8"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (caveid >= 0.85) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_la_cave_7"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (caveid >= 0.8) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_la_cave_6"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (caveid >= 0.7) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_la_cave_5"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (caveid >= 0.6) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_la_cave_4"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (caveid >= 0.3) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_la_cave_3"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (caveid >= 0.15) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_la_cave_2"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_la_cave_1"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					}
-				} else {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "ls_la_cave_1"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				}
-			}
-		} else if (ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lspiscinedim")) == (entity.level().dimension())) {
-			gridX = Math.floor(entity.getX() / 48) * 48;
-			gridZ = Math.floor(entity.getZ() / 48) * 48;
-			if (!((world.getBlockState(BlockPos.containing(gridX, 20, gridZ))).getBlock() == Blocks.BEDROCK)) {
-				poolid = Mth.nextInt(RandomSource.create(), 1, 3);
-				world.setBlock(BlockPos.containing(gridX, 20, gridZ), Blocks.BEDROCK.defaultBlockState(), 3);
-				if (poolid == 1) {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lslapiscine_1"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				} else if (poolid == 2) {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lslapiscine_2"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				} else if (poolid == 3) {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lslapiscine_3"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				}
-			}
-		} else if (ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lsmaisoninonde")) == (entity.level().dimension())) {
-			gridX = Math.floor(entity.getX() / 48) * 48;
-			gridZ = Math.floor(entity.getZ() / 48) * 48;
-			if (!((world.getBlockState(BlockPos.containing(gridX, 20, gridZ))).getBlock() == Blocks.BEDROCK)) {
-				poolid = Mth.nextInt(RandomSource.create(), 1, 4);
-				world.setBlock(BlockPos.containing(gridX, 20, gridZ), Blocks.BEDROCK.defaultBlockState(), 3);
-				if (gridX == 0 && gridZ == 0) {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsmaisoninonde"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				} else {
-					if (Math.random() >= 0.55) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsmaisoninonde_ocean"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else {
-						if (poolid == 1) {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsmaisoninonde_ocean"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						} else if (poolid == 2) {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsmaisoninonde_ocean_stal1"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						} else if (poolid == 3) {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsmaisoninonde_ocean_stal2"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						} else if (poolid == 4) {
-							caveid = Math.random();
-							if (caveid >= 0.55) {
-								if (world instanceof ServerLevel _serverworld) {
-									StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsmaisoninonde_ocean_stal3"));
-									if (template != null) {
-										template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-												new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-									}
-								}
-							} else if (caveid >= 0.35) {
-								if (world instanceof ServerLevel _serverworld) {
-									StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsmaisoninonde_ocean_stal4_bus"));
-									if (template != null) {
-										template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-												new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-									}
-								}
-							} else {
-								if (world instanceof ServerLevel _serverworld) {
-									StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsmaisoninonde_ocean_stal5_market"));
-									if (template != null) {
-										template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-												new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		} else if (ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lscentrecommercialdim")) == (entity.level().dimension())) {
-			gridX = Math.floor(entity.getX() / 48) * 48;
-			gridZ = Math.floor(entity.getZ() / 48) * 48;
-			if (!((world.getBlockState(BlockPos.containing(gridX, 20, gridZ))).getBlock() == Blocks.BEDROCK)) {
-				world.setBlock(BlockPos.containing(gridX, 20, gridZ), Blocks.BEDROCK.defaultBlockState(), 3);
-				poolid = Mth.nextInt(RandomSource.create(), 0, 2);
-				if (gridX == 0) {
-					if (poolid == 0) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lscentrecommercial"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (poolid == 1) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lscentrecommercial_alt"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (poolid == 2) {
-						if (Math.random() >= 0.95) {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lscentrecommercial_middle_portal"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						} else {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lscentrecommercial_middle"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						}
-					}
-				}
-			}
-		} else if (ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lsstationessencedim")) == (entity.level().dimension())) {
-			gridX = Math.floor(entity.getX() / 48) * 48;
-			gridZ = Math.floor(entity.getZ() / 48) * 48;
-			if (!((world.getBlockState(BlockPos.containing(gridX, 20, gridZ))).getBlock() == Blocks.BEDROCK)) {
-				world.setBlock(BlockPos.containing(gridX, 20, gridZ), Blocks.BEDROCK.defaultBlockState(), 3);
-				if (gridX == 0 && gridZ == 0) {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsstationessence"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				} else if (gridX == 0 && gridZ != 0) {
-					randomlol = Math.random();
-					if (randomlol >= 0.9) {
-						if (entity.getZ() >= 400) {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsstationessence_road_monster_forest_bus"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						} else {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsstationessence_road_monster_forest3"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						}
-					} else if (randomlol >= 0.83) {
-						poolid = Mth.nextInt(RandomSource.create(), 1, 3);
-						if (poolid == 1) {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsstationessence_road_monster_forest2"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						} else if (poolid == 2) {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsstationessence_road_monster_forest"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						} else if (poolid == 3) {
-							if (world instanceof ServerLevel _serverworld) {
-								StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsstationessence_road_monster_forest3"));
-								if (template != null) {
-									template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-											new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-								}
-							}
-						}
-					} else {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsstationessence_road"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					}
-				} else {
-					if (Math.random() >= 0.8) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsstationessence_monster_forest"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsstationessence_forest"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					}
-				}
-			}
-		} else if (ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lschamprougedim")) == (entity.level().dimension())) {
-			gridX = Math.floor(entity.getX() / 48) * 48;
-			gridZ = Math.floor(entity.getZ() / 48) * 48;
-			if (!((world.getBlockState(BlockPos.containing(gridX, 20, gridZ))).getBlock() == Blocks.BEDROCK)) {
-				world.setBlock(BlockPos.containing(gridX, 20, gridZ), Blocks.BEDROCK.defaultBlockState(), 3);
-				randomlol = Math.random();
-				if (randomlol >= 0.85) {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lschamprouge_hole"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				} else {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lschamprouge"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				}
-			}
-		} else if (ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lschampinfini")) == (entity.level().dimension())) {
-			gridX = Math.floor(entity.getX() / 48) * 48;
-			gridZ = Math.floor(entity.getZ() / 48) * 48;
-			if (!((world.getBlockState(BlockPos.containing(gridX, 20, gridZ))).getBlock() == Blocks.BEDROCK)) {
-				world.setBlock(BlockPos.containing(gridX, 20, gridZ), Blocks.BEDROCK.defaultBlockState(), 3);
-				randomlol = Math.random();
-				if (randomlol >= 0.88) {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lschampinfini_bureau_entrace"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				} else if (randomlol >= 0.75) {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lschampinfini_pilleur"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				} else {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lschampinfini"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				}
-			}
-		} else if (ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lsbureaudim")) == (entity.level().dimension())) {
-			gridX = Math.floor(entity.getX() / 48) * 48;
-			gridZ = Math.floor(entity.getZ() / 48) * 48;
-			if (!((world.getBlockState(BlockPos.containing(gridX, 20, gridZ))).getBlock() == Blocks.BEDROCK)) {
-				world.setBlock(BlockPos.containing(gridX, 20, gridZ), Blocks.BEDROCK.defaultBlockState(), 3);
-				if (gridX == 0 && gridZ == 0) {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lslesbureau"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				} else {
-					randomlol = Math.random();
-					if (randomlol >= 0.88) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lslesbureau_2"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lslesbureau"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					}
-				}
-			}
-		} else if (ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lsbureauabandonedim")) == (entity.level().dimension())) {
-			gridX = Math.floor(entity.getX() / 48) * 48;
-			gridZ = Math.floor(entity.getZ() / 48) * 48;
-			if (!((world.getBlockState(BlockPos.containing(gridX, 20, gridZ))).getBlock() == Blocks.BEDROCK)) {
-				world.setBlock(BlockPos.containing(gridX, 20, gridZ), Blocks.BEDROCK.defaultBlockState(), 3);
-				if (world instanceof ServerLevel _serverworld) {
-					StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lslesbureauabandonnes"));
-					if (template != null) {
-						template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-								_serverworld.random, 3);
-					}
-				}
-			}
-		} else if (ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lsetatdefoliedim")) == (entity.level().dimension())) {
-			if (Mth.nextInt(RandomSource.create(), 0, 250) == 5) {
-				randomlol = Math.random();
-				if (randomlol >= 0.9) {
-					if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide())
-						_entity.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 200, 1, false, false));
-					if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide())
-						_entity.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 200, 1, false, false));
-					entity.hurt(new DamageSource(world.holderOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.parse("special_dungeon_reloaded:voiddamage")))), Mth.nextInt(RandomSource.create(), 6, 17));
-					poolid = Mth.nextInt(RandomSource.create(), 1, 2);
-					if (poolid == 1) {
-						if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide())
-							_entity.addEffect(new MobEffectInstance(SpecialDungeonReloadedModMobEffects.NOTCARREFUL, 45, 1, false, false));
-						if (world instanceof Level _level) {
-							if (!_level.isClientSide()) {
-								_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("special_dungeon_reloaded:scramer_long")), SoundSource.NEUTRAL, 1, 1);
-							} else {
-								_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("special_dungeon_reloaded:scramer_long")), SoundSource.NEUTRAL, 1, 1, false);
-							}
-						}
-					} else if (poolid == 2) {
-						if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide())
-							_entity.addEffect(new MobEffectInstance(SpecialDungeonReloadedModMobEffects.NOTCARREFUL, 20, 1, false, false));
-						if (world instanceof Level _level) {
-							if (!_level.isClientSide()) {
-								_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("special_dungeon_reloaded:screamer1s")), SoundSource.NEUTRAL, 1, 1);
-							} else {
-								_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("special_dungeon_reloaded:screamer1s")), SoundSource.NEUTRAL, 1, 1, false);
-							}
-						}
-					} else {
-						if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide())
-							_entity.addEffect(new MobEffectInstance(SpecialDungeonReloadedModMobEffects.NOTCARREFUL, 12, 1, false, false));
-						if (world instanceof Level _level) {
-							if (!_level.isClientSide()) {
-								_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("special_dungeon_reloaded:screamer")), SoundSource.NEUTRAL, 1, 1);
-							} else {
-								_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("special_dungeon_reloaded:screamer")), SoundSource.NEUTRAL, 1, 1, false);
-							}
-						}
-					}
-				} else if (randomlol >= 0.7) {
-					if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide())
-						_entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, false));
-					if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide())
-						_entity.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 200, 1, false, false));
-					if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide())
-						_entity.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 200, 1, false, false));
-				} else if (randomlol >= 0.58) {
-					if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide())
-						_entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, false));
-					entity.hurt(new DamageSource(world.holderOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.parse("special_dungeon_reloaded:voiddamage")))), Mth.nextInt(RandomSource.create(), 1, 5));
-					if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide())
-						_entity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 200, 1, false, false));
-				} else {
-					if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide())
-						_entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, false));
-					if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide())
-						_entity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 200, 1, false, false));
-				}
-			}
-			gridX = Math.floor(entity.getX() / 48) * 48;
-			gridZ = Math.floor(entity.getZ() / 48) * 48;
-			if (!((world.getBlockState(BlockPos.containing(gridX, 20, gridZ))).getBlock() == Blocks.BEDROCK)) {
-				world.setBlock(BlockPos.containing(gridX, 20, gridZ), Blocks.BEDROCK.defaultBlockState(), 3);
-				if (gridX == 0 && gridZ == 0) {
-					if (world instanceof ServerLevel _serverworld) {
-						StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsetatdefolie"));
-						if (template != null) {
-							template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ), new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false),
-									_serverworld.random, 3);
-						}
-					}
-				} else {
-					randomlol = Math.random();
-					if (randomlol >= 0.87) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsetatdefolie_bus"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else if (randomlol >= 0.79) {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsetatdefolie_glass"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					} else {
-						if (world instanceof ServerLevel _serverworld) {
-							StructureTemplate template = _serverworld.getStructureManager().getOrCreate(ResourceLocation.fromNamespaceAndPath("special_dungeon_reloaded", "lsetatdefolie"));
-							if (template != null) {
-								template.placeInWorld(_serverworld, BlockPos.containing(gridX, 150, gridZ), BlockPos.containing(gridX, 150, gridZ),
-										new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), _serverworld.random, 3);
-							}
-						}
-					}
 				}
 			}
 		}
+	}
+
+	private static boolean processCell(ServerLevel level, ResourceLocation dimension, Picker picker, LongOpenHashSet done, int cellX, int cellZ, boolean mandatory) {
+		long key = ((long) cellX << 32) ^ (cellZ & 0xFFFFFFFFL);
+		if (done.contains(key))
+			return false;
+		int gridX = cellX * CELL_SIZE;
+		int gridZ = cellZ * CELL_SIZE;
+		if (!isReachable(dimension, gridX)) {
+			done.add(key);
+			return false;
+		}
+		BlockPos marker = new BlockPos(gridX, MARKER_Y, gridZ);
+		if (!mandatory && !level.hasChunksAt(marker, new BlockPos(gridX + CELL_SIZE - 1, MARKER_Y, gridZ + CELL_SIZE - 1)))
+			return false;
+		done.add(key);
+		if (level.getBlockState(marker).is(Blocks.BEDROCK))
+			return false;
+		level.setBlock(marker, Blocks.BEDROCK.defaultBlockState(), 3);
+		String name = picker.pick(gridX, gridZ, level.getRandom());
+		if (name == null)
+			return false;
+		StructureTemplate template = level.getStructureManager().getOrCreate(id(name));
+		BlockPos origin = new BlockPos(gridX, STRUCTURE_Y, gridZ);
+		template.placeInWorld(level, origin, origin, new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), level.getRandom(), 3);
+		return true;
+	}
+
+	private static boolean isReachable(ResourceLocation dimension, int gridX) {
+		if (dimension.equals(BEACH))
+			return gridX < 500;
+		if (dimension.equals(VILLE_INFINIE))
+			return gridX < 350 && gridX + CELL_SIZE > -350;
+		return true;
+	}
+
+	private static String beach(int gridX, int gridZ, RandomSource random) {
+		if (gridX > 0)
+			return "ls_beach_sand";
+		if (gridX < 0)
+			return "ls_beach_ocean";
+		return switch (random.nextInt(6)) {
+			case 0 -> "ls_beach_main";
+			case 1 -> "ls_beach_main_sec2";
+			case 2 -> "ls_beach_main_sec3";
+			case 3 -> "ls_beach_main_sec4";
+			case 4 -> "ls_beach_main_sec5";
+			default -> random.nextDouble() >= 0.93 ? "ls_beach_main_sec6_withdog" : "ls_beach_main_sec6";
+		};
+	}
+
+	private static String campement(int gridX, int gridZ, RandomSource random) {
+		if (gridX == 0 && gridZ == 0)
+			return "ls_campement_main";
+		return random.nextDouble() >= 0.83 ? "ls_campement_forest2" : "ls_campement_forest1";
+	}
+
+	private static String villeInfinie(int gridX, int gridZ, RandomSource random) {
+		return random.nextDouble() >= 0.94 ? "ls_ville_infinie_1_bus" : "ls_ville_infinie_1";
+	}
+
+	private static String cave(int gridX, int gridZ, RandomSource random) {
+		if (random.nextDouble() < 0.7)
+			return "ls_la_cave_1";
+		double roll = random.nextDouble();
+		if (roll >= 0.9)
+			return "ls_la_cave_8";
+		if (roll >= 0.85)
+			return "ls_la_cave_7";
+		if (roll >= 0.8)
+			return "ls_la_cave_6";
+		if (roll >= 0.7)
+			return "ls_la_cave_5";
+		if (roll >= 0.6)
+			return "ls_la_cave_4";
+		if (roll >= 0.3)
+			return "ls_la_cave_3";
+		if (roll >= 0.15)
+			return "ls_la_cave_2";
+		return "ls_la_cave_1";
+	}
+
+	private static String piscine(int gridX, int gridZ, RandomSource random) {
+		return "lslapiscine_" + (1 + random.nextInt(3));
+	}
+
+	private static String maisonInondee(int gridX, int gridZ, RandomSource random) {
+		if (gridX == 0 && gridZ == 0)
+			return "lsmaisoninonde";
+		if (random.nextDouble() >= 0.55)
+			return "lsmaisoninonde_ocean";
+		return switch (random.nextInt(4)) {
+			case 0 -> "lsmaisoninonde_ocean";
+			case 1 -> "lsmaisoninonde_ocean_stal1";
+			case 2 -> "lsmaisoninonde_ocean_stal2";
+			default -> {
+				double roll = random.nextDouble();
+				yield roll >= 0.55 ? "lsmaisoninonde_ocean_stal3" : roll >= 0.35 ? "lsmaisoninonde_ocean_stal4_bus" : "lsmaisoninonde_ocean_stal5_market";
+			}
+		};
+	}
+
+	private static String centreCommercial(int gridX, int gridZ, RandomSource random) {
+		if (gridX != 0)
+			return null;
+		return switch (random.nextInt(3)) {
+			case 0 -> "lscentrecommercial";
+			case 1 -> "lscentrecommercial_alt";
+			default -> random.nextDouble() >= 0.95 ? "lscentrecommercial_middle_portal" : "lscentrecommercial_middle";
+		};
+	}
+
+	private static String stationEssence(int gridX, int gridZ, RandomSource random) {
+		if (gridX != 0)
+			return random.nextDouble() >= 0.8 ? "lsstationessence_monster_forest" : "lsstationessence_forest";
+		if (gridZ == 0)
+			return "lsstationessence";
+		double roll = random.nextDouble();
+		if (roll >= 0.9)
+			return gridZ >= 400 ? "lsstationessence_road_monster_forest_bus" : "lsstationessence_road_monster_forest3";
+		if (roll >= 0.83) {
+			return switch (random.nextInt(3)) {
+				case 0 -> "lsstationessence_road_monster_forest2";
+				case 1 -> "lsstationessence_road_monster_forest";
+				default -> "lsstationessence_road_monster_forest3";
+			};
+		}
+		return "lsstationessence_road";
+	}
+
+	private static String champRouge(int gridX, int gridZ, RandomSource random) {
+		return random.nextDouble() >= 0.85 ? "lschamprouge_hole" : "lschamprouge";
+	}
+
+	private static String champInfini(int gridX, int gridZ, RandomSource random) {
+		double roll = random.nextDouble();
+		if (roll >= 0.88)
+			return "lschampinfini_bureau_entrace";
+		if (roll >= 0.75)
+			return "lschampinfini_pilleur";
+		return "lschampinfini";
+	}
+
+	private static String bureau(int gridX, int gridZ, RandomSource random) {
+		if (gridX == 0 && gridZ == 0)
+			return "lslesbureau";
+		return random.nextDouble() >= 0.88 ? "lslesbureau_2" : "lslesbureau";
+	}
+
+	private static String bureauAbandonne(int gridX, int gridZ, RandomSource random) {
+		return "lslesbureauabandonnes";
+	}
+
+	private static String etatDeFolie(int gridX, int gridZ, RandomSource random) {
+		if (gridX == 0 && gridZ == 0)
+			return "lsetatdefolie";
+		double roll = random.nextDouble();
+		if (roll >= 0.87)
+			return "lsetatdefolie_bus";
+		if (roll >= 0.79)
+			return "lsetatdefolie_glass";
+		return "lsetatdefolie";
 	}
 }
