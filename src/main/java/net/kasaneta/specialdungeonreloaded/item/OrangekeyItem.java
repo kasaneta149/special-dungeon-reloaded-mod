@@ -9,7 +9,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.OpenorangeProcedure;
 
 public class OrangekeyItem extends Item {
 	public OrangekeyItem() {
-		super(new Item.Properties().durability(1));
+		super(new Item.Properties().stacksTo(20));
 	}
 
 	@Override

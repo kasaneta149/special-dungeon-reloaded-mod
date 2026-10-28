@@ -8,12 +8,14 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.bus.api.SubscribeEvent;
 
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.network.protocol.game.ClientboundLevelEventPacket;
 import net.minecraft.core.BlockPos;
 
 import net.kasaneta.specialdungeonreloaded.item.BedrockdestroyerItem;
@@ -102,7 +104,10 @@ public class BedrockdestroyerMiningHandler {
 	private static void finish(ServerPlayer player, ServerLevel level, Mining mining) {
 		MINING.remove(player.getUUID());
 		level.destroyBlockProgress(player.getId(), mining.pos, -1);
-		if (player.gameMode.destroyBlock(mining.pos))
+		BlockState state = level.getBlockState(mining.pos);
+		if (player.gameMode.destroyBlock(mining.pos)) {
+			player.connection.send(new ClientboundLevelEventPacket(2001, mining.pos, Block.getId(state), false));
 			Block.popResource(level, mining.pos, new ItemStack(Items.BEDROCK));
+		}
 	}
 }

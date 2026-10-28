@@ -9,7 +9,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.OpencyanProcedure;
 
 public class CyankeyItem extends Item {
 	public CyankeyItem() {
-		super(new Item.Properties().durability(1));
+		super(new Item.Properties().stacksTo(20));
 	}
 
 	@Override

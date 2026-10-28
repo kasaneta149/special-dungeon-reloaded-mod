@@ -10,7 +10,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.LockKeyRightclickedOnBlock
 
 public class LockKeyItem extends Item {
 	public LockKeyItem() {
-		super(new Item.Properties().durability(1).rarity(Rarity.UNCOMMON));
+		super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
 	}
 
 	@Override

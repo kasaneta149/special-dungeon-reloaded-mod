@@ -690,5 +690,7 @@
   "advancements.adfactor.title": "Made in Factory™",
   "advancements.adfactor.descr": "Enter the place where everything come from.",
   "advancements.adbuilding.descr": "You entered the building world, climb all the floors to fortune !",
-  "advancements.adbuilding.title": "A (big) skyscrapper !"
+  "advancements.adbuilding.title": "A (big) skyscrapper !",
+  "dungeons.doors.unlocked": "unlocked !",
+  "dungeons.doors.factory": "factory door"
 }

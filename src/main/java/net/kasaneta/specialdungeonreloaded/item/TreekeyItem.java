@@ -10,7 +10,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.OpencyanProcedure;
 
 public class TreekeyItem extends Item {
 	public TreekeyItem() {
-		super(new Item.Properties().durability(1).rarity(Rarity.UNCOMMON));
+		super(new Item.Properties().stacksTo(20).rarity(Rarity.UNCOMMON));
 	}
 
 	@Override

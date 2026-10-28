@@ -9,7 +9,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.OpengreenProcedure;
 
 public class GreenkeyItem extends Item {
 	public GreenkeyItem() {
-		super(new Item.Properties().durability(1));
+		super(new Item.Properties().stacksTo(20));
 	}
 
 	@Override

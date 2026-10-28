@@ -10,7 +10,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.OpenblackProcedure;
 
 public class BlackkeyItem extends Item {
 	public BlackkeyItem() {
-		super(new Item.Properties().durability(1).rarity(Rarity.RARE));
+		super(new Item.Properties().stacksTo(20).rarity(Rarity.RARE));
 	}
 
 	@Override

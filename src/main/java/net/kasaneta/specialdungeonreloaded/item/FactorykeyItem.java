@@ -10,7 +10,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.FactorykeyRightclickedOnBl
 
 public class FactorykeyItem extends Item {
 	public FactorykeyItem() {
-		super(new Item.Properties().durability(1).rarity(Rarity.EPIC));
+		super(new Item.Properties().stacksTo(20).rarity(Rarity.EPIC));
 	}
 
 	@Override

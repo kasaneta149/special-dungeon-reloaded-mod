@@ -9,7 +9,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.OpenbrownProcedure;
 
 public class BrownkeyItem extends Item {
 	public BrownkeyItem() {
-		super(new Item.Properties().durability(1));
+		super(new Item.Properties().stacksTo(20));
 	}
 
 	@Override

@@ -1,30 +1,15 @@
 {
   "replace": false,
   "values": [
-    "special_dungeon_reloaded:redkey",
-    "special_dungeon_reloaded:cyankey",
-    "special_dungeon_reloaded:yellowkey",
-    "special_dungeon_reloaded:brownkey",
-    "special_dungeon_reloaded:factorykey",
-    "special_dungeon_reloaded:whitekey",
-    "special_dungeon_reloaded:blackkey",
-    "special_dungeon_reloaded:greenkey",
+    "special_dungeon_reloaded:busshedule_2",
+    "special_dungeon_reloaded:busshedule_1",
     "special_dungeon_reloaded:busshedule_10",
-    "special_dungeon_reloaded:graykey",
-    "special_dungeon_reloaded:orangekey",
-    "special_dungeon_reloaded:lock_key",
-    "special_dungeon_reloaded:busshedule_826",
-    "special_dungeon_reloaded:treekey",
-    "special_dungeon_reloaded:bluekey",
     "special_dungeon_reloaded:busshedule_8",
     "special_dungeon_reloaded:busshedule_7",
     "special_dungeon_reloaded:busshedule_826dirty",
     "special_dungeon_reloaded:busshedule_9",
+    "special_dungeon_reloaded:busshedule_826",
     "special_dungeon_reloaded:busshedule_3",
-    "special_dungeon_reloaded:busshedule_6",
-    "special_dungeon_reloaded:busshedule_2",
-    "special_dungeon_reloaded:busshedule_1",
-    "special_dungeon_reloaded:rainbowkey",
-    "special_dungeon_reloaded:purplekey"
+    "special_dungeon_reloaded:busshedule_6"
   ]
 }

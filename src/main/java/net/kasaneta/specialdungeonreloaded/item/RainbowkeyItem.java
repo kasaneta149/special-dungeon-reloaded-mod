@@ -10,7 +10,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.RainbowkeyRightclickedOnBl
 
 public class RainbowkeyItem extends Item {
 	public RainbowkeyItem() {
-		super(new Item.Properties().durability(1).rarity(Rarity.EPIC));
+		super(new Item.Properties().stacksTo(20).rarity(Rarity.EPIC));
 	}
 
 	@Override

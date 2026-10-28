@@ -9,7 +9,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.Open_redProcedure;
 
 public class RedkeyItem extends Item {
 	public RedkeyItem() {
-		super(new Item.Properties().durability(1));
+		super(new Item.Properties().stacksTo(20));
 	}
 
 	@Override

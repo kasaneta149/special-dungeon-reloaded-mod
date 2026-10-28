@@ -691,5 +691,7 @@
   "advancements.adfactor.title": "Fait en Usine™",
   "advancements.adfactor.descr": "Entre dans la salle ou tout est fabriqué.",
   "advancements.adbuilding.descr": "Tu est rentré dans le batiment, monte les etage vers la fortune",
-  "advancements.adbuilding.title": "Un (tres grand) gratte ciel !"
+  "advancements.adbuilding.title": "Un (tres grand) gratte ciel !",
+  "dungeons.doors.unlocked": "deverouillé !",
+  "dungeons.doors.factory": "porte de l'usine"
 }

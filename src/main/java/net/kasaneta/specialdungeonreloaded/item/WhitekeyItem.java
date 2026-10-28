@@ -10,7 +10,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.OpenwhiteProcedure;
 
 public class WhitekeyItem extends Item {
 	public WhitekeyItem() {
-		super(new Item.Properties().durability(1).rarity(Rarity.RARE));
+		super(new Item.Properties().stacksTo(20).rarity(Rarity.RARE));
 	}
 
 	@Override

@@ -9,7 +9,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.OpenblueProcedure;
 
 public class BluekeyItem extends Item {
 	public BluekeyItem() {
-		super(new Item.Properties().durability(1));
+		super(new Item.Properties().stacksTo(20));
 	}
 
 	@Override

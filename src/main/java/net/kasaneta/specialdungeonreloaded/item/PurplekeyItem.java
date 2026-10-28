@@ -9,7 +9,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.OpenPurpleProcedure;
 
 public class PurplekeyItem extends Item {
 	public PurplekeyItem() {
-		super(new Item.Properties().durability(1));
+		super(new Item.Properties().stacksTo(20));
 	}
 
 	@Override

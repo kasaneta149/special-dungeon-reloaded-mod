@@ -9,7 +9,7 @@ import net.kasaneta.specialdungeonreloaded.procedures.YellowopenProcedure;
 
 public class YellowkeyItem extends Item {
 	public YellowkeyItem() {
-		super(new Item.Properties().durability(1));
+		super(new Item.Properties().stacksTo(20));
 	}
 
 	@Override
