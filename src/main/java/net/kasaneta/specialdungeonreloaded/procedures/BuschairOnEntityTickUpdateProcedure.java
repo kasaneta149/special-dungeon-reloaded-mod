@@ -2,7 +2,6 @@ package net.kasaneta.specialdungeonreloaded.procedures;
 
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,206 +15,111 @@ import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.BlockPos;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.function.IntPredicate;
+
 public class BuschairOnEntityTickUpdateProcedure {
+	private static final String NAMESPACE = "special_dungeon_reloaded";
+	private static final int CHECK_INTERVAL_TICKS = 10;
+
+	private record Trip(ResourceKey<Level> destination, Set<Integer> times) {
+	}
+
+	private record DayPlan(IntPredicate days, List<Trip> trips) {
+	}
+
+	private static final Map<Integer, List<DayPlan>> SCHEDULES = Map.of(
+		1, List.of(
+			plan(everyDay(),
+				trip("lschamprougedim", at(12, 30)))),
+		2, List.of(
+			plan(everyDay(),
+				trip("lsbeachdim", at(10, 17), at(10, 21), at(10, 35), at(10, 58), at(11, 11), at(11, 40)))),
+		3, List.of(
+			plan(everyNDays(3),
+				trip("lsstationessencedim", at(6, 10))),
+			plan(everyNDays(2),
+				trip("lspiscinedim", at(11, 10), at(13, 30))),
+			plan(everyDay(),
+				trip("lscentrecommercialdim",
+					at(6, 11), at(6, 44),
+					at(7, 0), at(7, 15), at(7, 30), at(7, 45),
+					at(8, 0), at(8, 15), at(8, 30), at(8, 45),
+					at(11, 1), at(11, 9), at(11, 15), at(11, 21), at(11, 33), at(11, 41), at(11, 49), at(11, 55),
+					at(12, 1), at(12, 9), at(12, 15), at(12, 21), at(12, 33), at(12, 41), at(12, 49), at(12, 55),
+					at(13, 1), at(13, 9), at(13, 15), at(13, 21), at(13, 33), at(13, 41), at(13, 49), at(13, 55)),
+				trip("lsbureaudim", at(8, 10), at(18, 45)),
+				trip("lsbureauabandonedim", at(22, 40), at(0, 28)))),
+		4, List.of(
+			plan(everyDay(),
+				trip("lschampinfini", at(5, 40), at(17, 3)))),
+		5, List.of(
+			plan(everyNDays(57),
+				trip("lsoceandos", at(0, 0)))));
+
+	private static int at(int hour, int minute) {
+		return hour * 60 + minute;
+	}
+
+	private static IntPredicate everyDay() {
+		return day -> true;
+	}
+
+	private static IntPredicate everyNDays(int n) {
+		return day -> Math.floorMod(day, n) == 0;
+	}
+
+	private static Trip trip(String dimension, int... times) {
+		Set<Integer> minutes = new HashSet<>();
+		for (int time : times)
+			minutes.add(time);
+		return new Trip(ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath(NAMESPACE, dimension)), minutes);
+	}
+
+	private static DayPlan plan(IntPredicate days, Trip... trips) {
+		return new DayPlan(days, List.of(trips));
+	}
+
 	public static void execute(LevelAccessor world, Entity entity) {
-		if (entity == null)
- return;
-		Entity le_joueur = null;
-		double day = 0;
-		double world_tick = 0;
-		double hour = 0;
-		double minute = 0;
-		double total_min = 0;
-		double tiz = 0;
-		double shedule_id = 0;
-		if (entity.getPersistentData().getDouble("nextCheck") > 0) {
-			entity.getPersistentData().putDouble("nextCheck", (entity.getPersistentData().getDouble("nextCheck") - 1));
-		} else {
-			entity.getPersistentData().putDouble("nextCheck", 15);
-			shedule_id = entity.getPersistentData().getDouble("shedule_id");
-			world_tick = world.dayTime();
-			tiz = (world.dayTime() % 24000 + 24000) % 24000;
-			total_min = Math.floor((tiz / 24000) * 1440);
-			day = world_tick / 24000;
-			hour = Math.floor(total_min / 60) + 6;
-			minute = total_min % 60;
-			if (hour >= 24) hour -= 24;
-			if (entity.isVehicle()) {
-				le_joueur = entity.getFirstPassenger();
-				if (le_joueur != null) {
-					if (le_joueur instanceof Player) {
-						if (shedule_id == 2) {
-							if (
-								(hour == 10 && minute == 17) || 
-								(hour == 10 && minute == 21) || 
-								(hour == 10 && minute == 35) || 
-								(hour == 10 && minute == 58) || 
-								(hour == 11 && minute == 11) || 
-								(hour == 11 && minute == 40)
-							) {
-								if (le_joueur instanceof ServerPlayer _player && !_player.level().isClientSide()) {
-									ResourceKey<Level> destinationType = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lsbeachdim"));
-									if (_player.level().dimension() == destinationType)
-										return;
-									ServerLevel nextLevel = _player.server.getLevel(destinationType);
-									if (nextLevel != null) {
-										_player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
-										_player.teleportTo(nextLevel, _player.getX(), _player.getY(), _player.getZ(), _player.getYRot(), _player.getXRot());
-										_player.connection.send(new ClientboundPlayerAbilitiesPacket(_player.getAbilities()));
-										for (MobEffectInstance _effectinstance : _player.getActiveEffects())
-											_player.connection.send(new ClientboundUpdateMobEffectPacket(_player.getId(), _effectinstance, false));
-										_player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
-									}
-								}
-							}
-						}else if (shedule_id == 1) {
-							if ((hour == 12 && minute == 30)) {
-								if (le_joueur instanceof ServerPlayer _player && !_player.level().isClientSide()) {
-									ResourceKey<Level> destinationType = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lschamprougedim"));
-									if (_player.level().dimension() == destinationType)
-										return;
-									ServerLevel nextLevel = _player.server.getLevel(destinationType);
-									if (nextLevel != null) {
-										_player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
-										_player.teleportTo(nextLevel, _player.getX(), _player.getY(), _player.getZ(), _player.getYRot(), _player.getXRot());
-										_player.connection.send(new ClientboundPlayerAbilitiesPacket(_player.getAbilities()));
-										for (MobEffectInstance _effectinstance : _player.getActiveEffects())
-											_player.connection.send(new ClientboundUpdateMobEffectPacket(_player.getId(), _effectinstance, false));
-										_player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
-									}
-								}
-							}
-						}else if (shedule_id == 3) {
-							if ((Math.floor(day) % 3)==0){
-								if ((hour == 6 && minute == 10)) {
-									if (le_joueur instanceof ServerPlayer _player && !_player.level().isClientSide()) {
-										ResourceKey<Level> destinationType = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lsstationessencedim"));
-										if (_player.level().dimension() == destinationType)
-											return;
-										ServerLevel nextLevel = _player.server.getLevel(destinationType);
-										if (nextLevel != null) {
-											_player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
-											_player.teleportTo(nextLevel, _player.getX(), _player.getY(), _player.getZ(), _player.getYRot(), _player.getXRot());
-											_player.connection.send(new ClientboundPlayerAbilitiesPacket(_player.getAbilities()));
-											for (MobEffectInstance _effectinstance : _player.getActiveEffects())
-												_player.connection.send(new ClientboundUpdateMobEffectPacket(_player.getId(), _effectinstance, false));
-											_player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
-										}
-									}
-								}
-							}else if ((Math.floor(day) % 2)==0){
-								if ((hour == 11 && minute == 10) || (hour == 13 && minute == 30)) {
-									if (le_joueur instanceof ServerPlayer _player && !_player.level().isClientSide()) {
-										ResourceKey<Level> destinationType = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lspiscinedim"));
-										if (_player.level().dimension() == destinationType)
-											return;
-										ServerLevel nextLevel = _player.server.getLevel(destinationType);
-										if (nextLevel != null) {
-											_player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
-											_player.teleportTo(nextLevel, _player.getX(), _player.getY(), _player.getZ(), _player.getYRot(), _player.getXRot());
-											_player.connection.send(new ClientboundPlayerAbilitiesPacket(_player.getAbilities()));
-											for (MobEffectInstance _effectinstance : _player.getActiveEffects())
-												_player.connection.send(new ClientboundUpdateMobEffectPacket(_player.getId(), _effectinstance, false));
-											_player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
-										}
-									}
-								}
-							}else {
-								if (
-									(hour == 6 && minute == 11) || (hour == 6 && minute == 44) ||
-									(hour == 7 && minute == 00) || (hour == 7 && minute == 15) || (hour == 7 && minute == 30) || (hour == 7 && minute == 45) ||
-									(hour == 8 && minute == 00) || (hour == 8 && minute == 15) || (hour == 8 && minute == 30) || (hour == 8 && minute == 45) ||
-									(hour == 11 && minute == 1) || (hour == 11 && minute == 9) || (hour == 11 && minute == 15) || (hour == 11 && minute == 21) || (hour == 11 && minute == 33) || (hour == 11 && minute == 41) || (hour == 11 && minute == 49) || (hour == 11 && minute == 55) ||
-									(hour == 12 && minute == 1) || (hour == 12 && minute == 9) || (hour == 12 && minute == 15) || (hour == 12 && minute == 21) || (hour == 12 && minute == 33) || (hour == 12 && minute == 41) || (hour == 12 && minute == 49) || (hour == 12 && minute == 55) ||
-									(hour == 13 && minute == 1) || (hour == 13 && minute == 9) || (hour == 13 && minute == 15) || (hour == 13 && minute == 21) || (hour == 13 && minute == 33) || (hour == 13 && minute == 41) || (hour == 13 && minute == 49) || (hour == 13 && minute == 55)
-								) {
-									if (le_joueur instanceof ServerPlayer _player && !_player.level().isClientSide()) {
-										ResourceKey<Level> destinationType = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lscentrecommercialdim"));
-										if (_player.level().dimension() == destinationType)
-											return;
-										ServerLevel nextLevel = _player.server.getLevel(destinationType);
-										if (nextLevel != null) {
-											_player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
-											_player.teleportTo(nextLevel, _player.getX(), _player.getY(), _player.getZ(), _player.getYRot(), _player.getXRot());
-											_player.connection.send(new ClientboundPlayerAbilitiesPacket(_player.getAbilities()));
-											for (MobEffectInstance _effectinstance : _player.getActiveEffects())
-												_player.connection.send(new ClientboundUpdateMobEffectPacket(_player.getId(), _effectinstance, false));
-											_player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
-										}
-									}
-								}else if ((hour == 8 && minute == 10) || (hour == 8 && minute == 45) || (hour == 18 && minute == 45) || (hour == 18 && minute == 45)) {
-									if (le_joueur instanceof ServerPlayer _player && !_player.level().isClientSide()) {
-										ResourceKey<Level> destinationType = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lsbureaudim"));
-										if (_player.level().dimension() == destinationType)
-											return;
-										ServerLevel nextLevel = _player.server.getLevel(destinationType);
-										if (nextLevel != null) {
-											_player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
-											_player.teleportTo(nextLevel, _player.getX(), _player.getY(), _player.getZ(), _player.getYRot(), _player.getXRot());
-											_player.connection.send(new ClientboundPlayerAbilitiesPacket(_player.getAbilities()));
-											for (MobEffectInstance _effectinstance : _player.getActiveEffects())
-												_player.connection.send(new ClientboundUpdateMobEffectPacket(_player.getId(), _effectinstance, false));
-											_player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
-										}
-									}
-								}else if ((hour == 22 && minute == 40) || (hour == 0 && minute == 28)) {
-									if (le_joueur instanceof ServerPlayer _player && !_player.level().isClientSide()) {
-										ResourceKey<Level> destinationType = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lsbureauabandonedim"));
-										if (_player.level().dimension() == destinationType)
-											return;
-										ServerLevel nextLevel = _player.server.getLevel(destinationType);
-										if (nextLevel != null) {
-											_player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
-											_player.teleportTo(nextLevel, _player.getX(), _player.getY(), _player.getZ(), _player.getYRot(), _player.getXRot());
-											_player.connection.send(new ClientboundPlayerAbilitiesPacket(_player.getAbilities()));
-											for (MobEffectInstance _effectinstance : _player.getActiveEffects())
-												_player.connection.send(new ClientboundUpdateMobEffectPacket(_player.getId(), _effectinstance, false));
-											_player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
-										}
-									}
-								}
-							}
-							
-						}else if (shedule_id == 4) {
-								if ((hour == 5 && minute == 40) || (hour == 17 && minute == 3)) {
-									if (le_joueur instanceof ServerPlayer _player && !_player.level().isClientSide()) {
-										ResourceKey<Level> destinationType = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lschampinfini"));
-										if (_player.level().dimension() == destinationType)
-											return;
-										ServerLevel nextLevel = _player.server.getLevel(destinationType);
-										if (nextLevel != null) {
-											_player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
-											_player.teleportTo(nextLevel, _player.getX(), _player.getY(), _player.getZ(), _player.getYRot(), _player.getXRot());
-											_player.connection.send(new ClientboundPlayerAbilitiesPacket(_player.getAbilities()));
-											for (MobEffectInstance _effectinstance : _player.getActiveEffects())
-												_player.connection.send(new ClientboundUpdateMobEffectPacket(_player.getId(), _effectinstance, false));
-											_player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
-										}
-									}
-								}
-						}else if (shedule_id == 5) {
-							if ((Math.floor(day) % 57)==0){
-								if ((hour == 0 && minute == 0)) {
-									if (le_joueur instanceof ServerPlayer _player && !_player.level().isClientSide()) {
-										ResourceKey<Level> destinationType = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("special_dungeon_reloaded:lsoceandos"));
-										if (_player.level().dimension() == destinationType)
-											return;
-										ServerLevel nextLevel = _player.server.getLevel(destinationType);
-										if (nextLevel != null) {
-											_player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
-											_player.teleportTo(nextLevel, _player.getX(), _player.getY(), _player.getZ(), _player.getYRot(), _player.getXRot());
-											_player.connection.send(new ClientboundPlayerAbilitiesPacket(_player.getAbilities()));
-											for (MobEffectInstance _effectinstance : _player.getActiveEffects())
-												_player.connection.send(new ClientboundUpdateMobEffectPacket(_player.getId(), _effectinstance, false));
-											_player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
-										}
-									}
-								}
-							}
-						}
-					}
+		if (entity == null || world.isClientSide())
+			return;
+		if (entity.tickCount % CHECK_INTERVAL_TICKS != 0)
+			return;
+		if (!(entity.getFirstPassenger() instanceof ServerPlayer player))
+			return;
+		List<DayPlan> plans = SCHEDULES.get((int) entity.getPersistentData().getDouble("shedule_id"));
+		if (plans == null)
+			return;
+		long dayTime = world.dayTime();
+		int day = GameClock.day(dayTime);
+		int minuteOfDay = GameClock.minuteOfDay(dayTime);
+		for (DayPlan plan : plans) {
+			if (!plan.days().test(day))
+				continue;
+			for (Trip trip : plan.trips()) {
+				if (trip.times().contains(minuteOfDay)) {
+					travel(player, trip.destination());
+					return;
 				}
 			}
+			return;
 		}
+	}
+
+	private static void travel(ServerPlayer player, ResourceKey<Level> destination) {
+		if (player.level().dimension().equals(destination))
+			return;
+		ServerLevel nextLevel = player.server.getLevel(destination);
+		if (nextLevel == null)
+			return;
+		player.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 0));
+		player.teleportTo(nextLevel, player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
+		player.connection.send(new ClientboundPlayerAbilitiesPacket(player.getAbilities()));
+		for (MobEffectInstance effect : player.getActiveEffects())
+			player.connection.send(new ClientboundUpdateMobEffectPacket(player.getId(), effect, false));
+		player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
 	}
 }
