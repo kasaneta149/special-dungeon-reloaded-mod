@@ -18,21 +18,24 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.Mth;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerAbilitiesPacket;
+import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.network.protocol.game.ClientboundLevelEventPacket;
 import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Holder;
 import net.minecraft.core.BlockPos;
 
 import net.kasaneta.specialdungeonreloaded.init.SpecialDungeonReloadedModMobEffects;
@@ -43,10 +46,13 @@ import java.util.HashMap;
 @EventBusSubscriber
 public class LiminallistenerProcedure {
 	private static final String NAMESPACE = "special_dungeon_reloaded";
+
 	private static final int CELL_SIZE = 48;
 	private static final int PRELOAD_RADIUS = 3;
+	private static final int PRELOAD_INTERVAL = 5;
 	private static final int MARKER_Y = 20;
 	private static final int STRUCTURE_Y = 150;
+	private static final int PLACE_FLAGS = 2;
 
 	private static final ResourceLocation BEACH = id("lsbeachdim");
 	private static final ResourceLocation CAMPEMENT = id("lscampement");
@@ -66,8 +72,8 @@ public class LiminallistenerProcedure {
 	private static final ResourceKey<Level> CAVE_KEY = ResourceKey.create(Registries.DIMENSION, CAVE);
 	private static final ResourceKey<DamageType> VOID_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, id("voiddamage"));
 
-	private static final ResourceLocation SCREAM_LONG = id("scramer_long");
-	private static final ResourceLocation SCREAM_SHORT = id("screamer1s");
+	private static final SoundEvent SCREAM_LONG = SoundEvent.createVariableRangeEvent(id("scramer_long"));
+	private static final SoundEvent SCREAM_SHORT = SoundEvent.createVariableRangeEvent(id("screamer1s"));
 
 	private interface Picker {
 		String pick(int gridX, int gridZ, RandomSource random);
@@ -107,6 +113,8 @@ public class LiminallistenerProcedure {
 		if (entity == null || !(world instanceof ServerLevel level))
 			return;
 		ResourceLocation dimension = level.dimension().location();
+		if (!NAMESPACE.equals(dimension.getNamespace()))
+			return;
 		if (dimension.equals(BEACH)) {
 			if (entity.getY() >= 200) {
 				teleport(entity, Level.OVERWORLD);
@@ -120,7 +128,7 @@ public class LiminallistenerProcedure {
 			teleport(entity, CAVE_KEY);
 			return;
 		} else if (dimension.equals(ETAT_DE_FOLIE) && entity instanceof LivingEntity living) {
-			applyMadness(level, x, y, z, living);
+			applyMadness(level, living);
 		}
 		Picker picker = PICKERS.get(dimension);
 		if (picker != null)
@@ -145,37 +153,47 @@ public class LiminallistenerProcedure {
 		player.connection.send(new ClientboundLevelEventPacket(1032, BlockPos.ZERO, 0, false));
 	}
 
-	private static void playSound(ServerLevel level, double x, double y, double z, ResourceLocation sound) {
-		level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.get(sound), SoundSource.NEUTRAL, 1, 1);
+	private static void playSound(ServerLevel level, Entity entity, SoundEvent sound) {
+		if (!(entity instanceof ServerPlayer player))
+			return;
+		player.connection.send(new ClientboundSoundPacket(Holder.direct(sound), SoundSource.NEUTRAL, player.getX(), player.getY(), player.getZ(), 1, 1, level.getRandom().nextLong()));
 	}
 
-	private static void applyMadness(ServerLevel level, double x, double y, double z, LivingEntity entity) {
+	private static void addEffect(LivingEntity entity, Holder<MobEffect> effect, int duration, int amplifier) {
+		entity.addEffect(new MobEffectInstance(effect, duration, amplifier, false, false));
+	}
+
+	private static void voidDamage(ServerLevel level, LivingEntity entity, float amount) {
+		entity.hurt(new DamageSource(level.holderOrThrow(VOID_DAMAGE)), amount);
+	}
+
+	private static void applyMadness(ServerLevel level, LivingEntity entity) {
 		RandomSource random = level.getRandom();
 		if (random.nextInt(251) != 5)
 			return;
 		double roll = random.nextDouble();
 		if (roll >= 0.9) {
-			entity.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 200, 1, false, false));
-			entity.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 200, 1, false, false));
-			entity.hurt(new DamageSource(level.holderOrThrow(VOID_DAMAGE)), 6 + random.nextInt(12));
+			addEffect(entity, MobEffects.DARKNESS, 200, 1);
+			addEffect(entity, MobEffects.BLINDNESS, 200, 1);
+			voidDamage(level, entity, 6 + random.nextInt(12));
 			if (random.nextBoolean()) {
-				entity.addEffect(new MobEffectInstance(SpecialDungeonReloadedModMobEffects.NOTCARREFUL, 45, 1, false, false));
-				playSound(level, x, y, z, SCREAM_LONG);
+				addEffect(entity, SpecialDungeonReloadedModMobEffects.NOTCARREFUL, 45, 1);
+				playSound(level, entity, SCREAM_LONG);
 			} else {
-				entity.addEffect(new MobEffectInstance(SpecialDungeonReloadedModMobEffects.NOTCARREFUL, 20, 1, false, false));
-				playSound(level, x, y, z, SCREAM_SHORT);
+				addEffect(entity, SpecialDungeonReloadedModMobEffects.NOTCARREFUL, 20, 1);
+				playSound(level, entity, SCREAM_SHORT);
 			}
 		} else if (roll >= 0.7) {
-			entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, false));
-			entity.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 200, 1, false, false));
-			entity.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 200, 1, false, false));
+			addEffect(entity, MobEffects.MOVEMENT_SLOWDOWN, 200, 2);
+			addEffect(entity, MobEffects.DARKNESS, 200, 1);
+			addEffect(entity, MobEffects.BLINDNESS, 200, 1);
 		} else if (roll >= 0.58) {
-			entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, false));
-			entity.hurt(new DamageSource(level.holderOrThrow(VOID_DAMAGE)), 1 + random.nextInt(5));
-			entity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 200, 1, false, false));
+			addEffect(entity, MobEffects.MOVEMENT_SLOWDOWN, 200, 2);
+			voidDamage(level, entity, 1 + random.nextInt(5));
+			addEffect(entity, MobEffects.CONFUSION, 200, 1);
 		} else {
-			entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 2, false, false));
-			entity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 200, 1, false, false));
+			addEffect(entity, MobEffects.MOVEMENT_SLOWDOWN, 200, 2);
+			addEffect(entity, MobEffects.CONFUSION, 200, 1);
 		}
 	}
 
@@ -183,12 +201,17 @@ public class LiminallistenerProcedure {
 		LongOpenHashSet done = DONE.computeIfAbsent(level.dimension(), key -> new LongOpenHashSet());
 		int centerX = Math.floorDiv(Mth.floor(entity.getX()), CELL_SIZE);
 		int centerZ = Math.floorDiv(Mth.floor(entity.getZ()), CELL_SIZE);
-		for (int ring = 0; ring <= PRELOAD_RADIUS; ring++) {
+
+		if (processCell(level, dimension, picker, done, centerX, centerZ, true))
+			return;
+
+		if (entity.tickCount % PRELOAD_INTERVAL != 0)
+			return;
+		for (int ring = 1; ring <= PRELOAD_RADIUS; ring++) {
 			for (int dx = -ring; dx <= ring; dx++) {
-				for (int dz = -ring; dz <= ring; dz++) {
-					if (Math.max(Math.abs(dx), Math.abs(dz)) != ring)
-						continue;
-					if (processCell(level, dimension, picker, done, centerX + dx, centerZ + dz, ring == 0))
+				int step = Math.abs(dx) == ring ? 1 : 2 * ring;
+				for (int dz = -ring; dz <= ring; dz += step) {
+					if (processCell(level, dimension, picker, done, centerX + dx, centerZ + dz, false))
 						return;
 				}
 			}
@@ -211,13 +234,13 @@ public class LiminallistenerProcedure {
 		done.add(key);
 		if (level.getBlockState(marker).is(Blocks.BEDROCK))
 			return false;
-		level.setBlock(marker, Blocks.BEDROCK.defaultBlockState(), 3);
+		level.setBlock(marker, Blocks.BEDROCK.defaultBlockState(), PLACE_FLAGS);
 		String name = picker.pick(gridX, gridZ, level.getRandom());
 		if (name == null)
 			return false;
 		StructureTemplate template = level.getStructureManager().getOrCreate(id(name));
 		BlockPos origin = new BlockPos(gridX, STRUCTURE_Y, gridZ);
-		template.placeInWorld(level, origin, origin, new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), level.getRandom(), 3);
+		template.placeInWorld(level, origin, origin, new StructurePlaceSettings().setRotation(Rotation.NONE).setMirror(Mirror.NONE).setIgnoreEntities(false), level.getRandom(), PLACE_FLAGS);
 		return true;
 	}
 
@@ -343,6 +366,8 @@ public class LiminallistenerProcedure {
 	}
 
 	private static String bureauAbandonne(int gridX, int gridZ, RandomSource random) {
+		if (gridX != 0)
+			return null;
 		return "lslesbureauabandonnes";
 	}
 
