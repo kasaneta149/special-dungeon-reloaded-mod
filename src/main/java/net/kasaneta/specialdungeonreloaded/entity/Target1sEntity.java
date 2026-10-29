@@ -3,6 +3,7 @@ package net.kasaneta.specialdungeonreloaded.entity;
 import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 
 import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -11,6 +12,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.resources.ResourceLocation;
@@ -71,6 +73,10 @@ public class Target1sEntity extends Monster {
 		Entity immediatesourceentity = damagesource.getDirectEntity();
 
 		TargethitbonusProcedure.execute(sourceentity);
+		if (damagesource.getDirectEntity() instanceof Player)
+			return false;
+		if (damagesource.is(DamageTypes.FALL))
+			return false;
 		return super.hurt(damagesource, amount);
 	}
 
