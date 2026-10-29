@@ -1,191 +1,20 @@
 package net.kasaneta.specialdungeonreloaded.procedures;
 
-import net.minecraft.world.scores.criteria.ObjectiveCriteria;
-import net.minecraft.world.scores.Scoreboard;
-import net.minecraft.world.scores.ScoreHolder;
-import net.minecraft.world.scores.Objective;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.chat.Component;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
-
-import net.kasaneta.specialdungeonreloaded.network.SpecialDungeonReloadedModVariables;
-import net.kasaneta.specialdungeonreloaded.SpecialDungeonReloadedMod;
-
-import java.util.ArrayList;
 
 public class LasergamecontrollerNeighbourBlockChangesProcedure {
 	public static void execute(LevelAccessor world, double x, double y, double z) {
-		double mostscore = 0;
-		if (getBlockNBTLogic(world, BlockPos.containing(x, y, z), "started")) {
-			if (!world.isClientSide()) {
-				BlockPos _bp = BlockPos.containing(x, y, z);
-				BlockEntity _blockEntity = world.getBlockEntity(_bp);
-				BlockState _bs = world.getBlockState(_bp);
-				if (_blockEntity != null) {
-					_blockEntity.getPersistentData().putBoolean("started", false);
-				}
-				if (world instanceof Level _level)
-					_level.sendBlockUpdated(_bp, _bs, _bs, 3);
-			}
-			if (world instanceof net.minecraft.server.level.ServerLevel _servLvl) {
-				StringBuilder _titleTextBuilder = new StringBuilder();
-				_titleTextBuilder.append((Component.translatable("game.laser.finished").getString()));
-				String _titleText = _titleTextBuilder.toString();
-				net.minecraft.network.chat.Component _comp = net.minecraft.network.chat.Component.literal(_titleText);
-				int _fadeTicks = (int) (0.5 * 20.0D);
-				int _holdTicks = (int) (3 * 20.0D);
-				java.util.List<net.minecraft.server.level.ServerPlayer> _targetPlayers = new java.util.ArrayList<>();
-				_targetPlayers.addAll(_servLvl.players());
-				for (net.minecraft.server.level.ServerPlayer _sp : _targetPlayers) {
-					_sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket(_fadeTicks, _holdTicks, _fadeTicks));
-					_sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket(_comp));
-				}
-			}
-			mostscore = -1;
-			SpecialDungeonReloadedModVariables.WorldVariables.get(world).lastwinnerscore = -1;
-			SpecialDungeonReloadedModVariables.WorldVariables.get(world).lastwinnername = "";
-			SpecialDungeonReloadedModVariables.WorldVariables.get(world).markSyncDirty();
-			for (Entity entityiterator : new ArrayList<>(world.players())) {
-				if (getEntityScore("lasergame_score", entityiterator) > mostscore) {
-					SpecialDungeonReloadedModVariables.WorldVariables.get(world).lastwinnerscore = getEntityScore("lasergame_score", entityiterator);
-					SpecialDungeonReloadedModVariables.WorldVariables.get(world).markSyncDirty();
-					mostscore = getEntityScore("lasergame_score", entityiterator);
-					SpecialDungeonReloadedModVariables.WorldVariables.get(world).lastwinnername = entityiterator.getDisplayName().getString();
-					SpecialDungeonReloadedModVariables.WorldVariables.get(world).markSyncDirty();
-				}
-				{
-					Entity _ent = entityiterator;
-					Scoreboard _sc = _ent.level().getScoreboard();
-					Objective _so = _sc.getObjective("lasergame_score");
-					if (_so == null)
-						_so = _sc.addObjective("lasergame_score", ObjectiveCriteria.DUMMY, Component.literal("lasergame_score"), ObjectiveCriteria.RenderType.INTEGER, true, null);
-					_sc.getOrCreatePlayerScore(ScoreHolder.forNameOnly(_ent.getScoreboardName()), _so).set(0);
-				}
-			}
-			SpecialDungeonReloadedMod.queueServerWork(80, () -> {
-				if (world instanceof net.minecraft.server.level.ServerLevel _servLvl) {
-					StringBuilder _titleTextBuilder = new StringBuilder();
-					_titleTextBuilder.append((Component.translatable("game.laser.winneris").getString()));
-					String _titleText = _titleTextBuilder.toString();
-					net.minecraft.network.chat.Component _comp = net.minecraft.network.chat.Component.literal(_titleText);
-					int _fadeTicks = (int) (0.5 * 20.0D);
-					int _holdTicks = (int) (3 * 20.0D);
-					java.util.List<net.minecraft.server.level.ServerPlayer> _targetPlayers = new java.util.ArrayList<>();
-					_targetPlayers.addAll(_servLvl.players());
-					for (net.minecraft.server.level.ServerPlayer _sp : _targetPlayers) {
-						_sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket(_fadeTicks, _holdTicks, _fadeTicks));
-						_sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket(_comp));
-					}
-				}
-			});
-			SpecialDungeonReloadedMod.queueServerWork(160, () -> {
-				if (world instanceof net.minecraft.server.level.ServerLevel _servLvl) {
-					StringBuilder _titleTextBuilder = new StringBuilder();
-					_titleTextBuilder.append(SpecialDungeonReloadedModVariables.WorldVariables.get(world).lastwinnername);
-					String _titleText = _titleTextBuilder.toString();
-					net.minecraft.network.chat.Component _comp = net.minecraft.network.chat.Component.literal(_titleText);
-					int _fadeTicks = (int) (0.5 * 20.0D);
-					int _holdTicks = (int) (3 * 20.0D);
-					java.util.List<net.minecraft.server.level.ServerPlayer> _targetPlayers = new java.util.ArrayList<>();
-					_targetPlayers.addAll(_servLvl.players());
-					for (net.minecraft.server.level.ServerPlayer _sp : _targetPlayers) {
-						_sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket(_fadeTicks, _holdTicks, _fadeTicks));
-						_sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket(_comp));
-					}
-				}
-				if (world instanceof net.minecraft.server.level.ServerLevel _servLvl) {
-					StringBuilder _titleTextBuilder = new StringBuilder();
-					_titleTextBuilder.append(((Component.translatable("game.laser.winnercongrat").getString()).replace("%s", new java.text.DecimalFormat("#").format(SpecialDungeonReloadedModVariables.WorldVariables.get(world).lastwinnerscore))));
-					String _titleText = _titleTextBuilder.toString();
-					net.minecraft.network.chat.Component _comp = net.minecraft.network.chat.Component.literal(_titleText);
-					int _fadeTicks = (int) (0.5 * 20.0D);
-					int _holdTicks = (int) (3 * 20.0D);
-					java.util.List<net.minecraft.server.level.ServerPlayer> _targetPlayers = new java.util.ArrayList<>();
-					_targetPlayers.addAll(_servLvl.players());
-					for (net.minecraft.server.level.ServerPlayer _sp : _targetPlayers) {
-						_sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket(_fadeTicks, _holdTicks, _fadeTicks));
-						_sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket(_comp));
-					}
-				}
-			});
+		if (!(world instanceof ServerLevel level))
+			return;
+		BlockPos pos = BlockPos.containing(x, y, z);
+		if (LaserGame.isStarted(level, pos)) {
+			LaserGame.setStarted(level, pos, false);
+			LaserGame.finish(level);
 		} else {
-			if (!world.isClientSide()) {
-				BlockPos _bp = BlockPos.containing(x, y, z);
-				BlockEntity _blockEntity = world.getBlockEntity(_bp);
-				BlockState _bs = world.getBlockState(_bp);
-				if (_blockEntity != null) {
-					_blockEntity.getPersistentData().putBoolean("started", true);
-				}
-				if (world instanceof Level _level)
-					_level.sendBlockUpdated(_bp, _bs, _bs, 3);
-			}
-			if (world instanceof Level _level) {
-				if (!_level.isClientSide()) {
-					_level.playSound(null, BlockPos.containing(x, y, z), BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("special_dungeon_reloaded:gamestarted")), SoundSource.NEUTRAL, 1, (float) 0.75);
-				} else {
-					_level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("special_dungeon_reloaded:gamestarted")), SoundSource.NEUTRAL, 1, (float) 0.75, false);
-				}
-			}
-			if (world instanceof net.minecraft.server.level.ServerLevel _servLvl) {
-				StringBuilder _titleTextBuilder = new StringBuilder();
-				_titleTextBuilder.append((Component.translatable("game.laser.started").getString()));
-				String _titleText = _titleTextBuilder.toString();
-				net.minecraft.network.chat.Component _comp = net.minecraft.network.chat.Component.literal(_titleText);
-				int _fadeTicks = (int) (0.5 * 20.0D);
-				int _holdTicks = (int) (3 * 20.0D);
-				java.util.List<net.minecraft.server.level.ServerPlayer> _targetPlayers = new java.util.ArrayList<>();
-				_targetPlayers.addAll(_servLvl.players());
-				for (net.minecraft.server.level.ServerPlayer _sp : _targetPlayers) {
-					_sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket(_fadeTicks, _holdTicks, _fadeTicks));
-					_sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket(_comp));
-				}
-			}
-			if (world instanceof net.minecraft.server.level.ServerLevel _servLvl) {
-				StringBuilder _titleTextBuilder = new StringBuilder();
-				_titleTextBuilder.append((Component.translatable("game.laser.started2").getString()));
-				String _titleText = _titleTextBuilder.toString();
-				net.minecraft.network.chat.Component _comp = net.minecraft.network.chat.Component.literal(_titleText);
-				int _fadeTicks = (int) (0.5 * 20.0D);
-				int _holdTicks = (int) (3 * 20.0D);
-				java.util.List<net.minecraft.server.level.ServerPlayer> _targetPlayers = new java.util.ArrayList<>();
-				_targetPlayers.addAll(_servLvl.players());
-				for (net.minecraft.server.level.ServerPlayer _sp : _targetPlayers) {
-					_sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket(_fadeTicks, _holdTicks, _fadeTicks));
-					_sp.connection.send(new net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket(_comp));
-				}
-			}
-			for (Entity entityiterator : new ArrayList<>(world.players())) {
-				{
-					Entity _ent = entityiterator;
-					Scoreboard _sc = _ent.level().getScoreboard();
-					Objective _so = _sc.getObjective("lasergame_score");
-					if (_so == null)
-						_so = _sc.addObjective("lasergame_score", ObjectiveCriteria.DUMMY, Component.literal("lasergame_score"), ObjectiveCriteria.RenderType.INTEGER, true, null);
-					_sc.getOrCreatePlayerScore(ScoreHolder.forNameOnly(_ent.getScoreboardName()), _so).set(0);
-				}
-			}
+			LaserGame.setStarted(level, pos, true);
+			LaserGame.start(level, pos);
 		}
-	}
-
-	private static boolean getBlockNBTLogic(LevelAccessor world, BlockPos pos, String tag) {
-		BlockEntity blockEntity = world.getBlockEntity(pos);
-		if (blockEntity != null)
-			return blockEntity.getPersistentData().getBoolean(tag);
-		return false;
-	}
-
-	private static int getEntityScore(String score, Entity entity) {
-		Scoreboard scoreboard = entity.level().getScoreboard();
-		Objective scoreboardObjective = scoreboard.getObjective(score);
-		if (scoreboardObjective != null)
-			return scoreboard.getOrCreatePlayerScore(ScoreHolder.forNameOnly(entity.getScoreboardName()), scoreboardObjective).get();
-		return 0;
 	}
 }

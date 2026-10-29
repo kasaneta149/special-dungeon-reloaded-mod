@@ -1,29 +1,18 @@
 package net.kasaneta.specialdungeonreloaded.procedures;
 
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 
 import net.kasaneta.specialdungeonreloaded.init.SpecialDungeonReloadedModBlocks;
 
 public class TargettickProcedure {
 	public static void execute(LevelAccessor world, double x, double y, double z, Entity entity) {
-		if (entity == null)
+		if (entity == null || !(world instanceof ServerLevel level) || entity.tickCount % 20 != 0)
 			return;
-		if ((world.getBlockState(BlockPos.containing(x, y - 1, z))).getBlock() == SpecialDungeonReloadedModBlocks.LASERGAMETARGETMAKER.get()) {
-			if (!world.isClientSide()) {
-				BlockPos _bp = BlockPos.containing(x, y - 1, z);
-				BlockEntity _blockEntity = world.getBlockEntity(_bp);
-				BlockState _bs = world.getBlockState(_bp);
-				if (_blockEntity != null) {
-					_blockEntity.getPersistentData().putString("bound_mob", (entity.getStringUUID()));
-				}
-				if (world instanceof Level _level)
-					_level.sendBlockUpdated(_bp, _bs, _bs, 3);
-			}
-		}
+		BlockPos pos = BlockPos.containing(x, y - 1, z);
+		if (level.getBlockState(pos).getBlock() == SpecialDungeonReloadedModBlocks.LASERGAMETARGETMAKER.get())
+			LaserGame.setBoundTarget(level, pos, entity.getStringUUID());
 	}
 }
